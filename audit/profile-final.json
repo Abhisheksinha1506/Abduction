@@ -1,0 +1,24 @@
+{
+  "source": "/Users/abhisheksinha/Desktop/personal git/abduction-game/dist/",
+  "node": "v24.9.0",
+  "scenario": "30 seeded missions; 5 warmups; explicit GC between 10-run batches",
+  "ticks": 159199,
+  "averageMs": 0.021409087299543304,
+  "p50Ms": 0.019,
+  "p95Ms": 0.035,
+  "p99Ms": 0.078,
+  "percentileOverflow": "Durations above 2ms share the final bucket",
+  "peaks": {
+    "entities": 23,
+    "projectiles": 3,
+    "particles": 104,
+    "texts": 6,
+    "events": 4
+  },
+  "postGcHeapBytes": [
+    4653152,
+    4738416,
+    4746128,
+    4718136
+  ]
+}

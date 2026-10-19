@@ -1,0 +1,652 @@
+[
+  {
+    "id": "BUILD-001",
+    "category": "Build",
+    "severity": "Critical",
+    "title": "Standalone HTML cannot start",
+    "gameplay_impact": "Standalone HTML cannot start",
+    "reproduction": "Extract the shipped HTML script and parse it with vm.Script.",
+    "expected": "The delivered file contains executable game code.",
+    "actual": "Invalid or unexpected token; cargo messages contain inserted HTML.",
+    "root_cause": "String.replace interprets dollar-sign substitution tokens inside the replacement source.",
+    "affected_files": [
+      "scripts/package.mjs",
+      "release/Abduction-Midnight-Harvest.html"
+    ],
+    "fix": "Use literal replacement callbacks and validate the script extracted from the final HTML.",
+    "regression_tests": [
+      "package.test.mjs",
+      "Actual standalone browser launch, mission win, purchase and reload"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "BUILD-002",
+    "category": "Build / graphics",
+    "severity": "High",
+    "title": "Standalone theme is corrupted",
+    "gameplay_impact": "Standalone theme is corrupted",
+    "reproduction": "Launch the embedded edition after stripping the Google Fonts import.",
+    "expected": "The root theme variables and local fallback fonts survive packaging.",
+    "actual": "White page, dark text on dark scenery, missing button colors.",
+    "root_cause": "The import-removal regex stops at a semicolon inside the font URL and leaves invalid text before :root.",
+    "affected_files": [
+      "scripts/package.mjs"
+    ],
+    "fix": "Remove the complete import line and test the embedded CSS prefix.",
+    "regression_tests": [
+      "package.test.mjs BUILD-002 assertion",
+      "Browser screenshots at 320, 768 and 1920 pixels"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-001",
+    "category": "Physics / player",
+    "severity": "High",
+    "title": "Side contact teleports the UFO onto a roof",
+    "gameplay_impact": "Side contact teleports the UFO onto a roof",
+    "reproduction": "Fly right from x743,y530 toward the first barn.",
+    "expected": "Stop at the side and retain altitude.",
+    "actual": "Y changes instantly from 530 to 469.",
+    "root_cause": "Every horizontal building overlap is resolved as a roof collision.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Resolve the earliest swept AABB contact and slide along its normal.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-001"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-002",
+    "category": "Physics / cargo",
+    "severity": "High",
+    "title": "Airborne cargo crosses building sides",
+    "gameplay_impact": "Airborne cargo crosses building sides",
+    "reproduction": "Launch a rock horizontally toward a building at 600, 12000 and 60000 units/second.",
+    "expected": "Solid walls stop or deflect cargo.",
+    "actual": "The rock crosses the wall because only roof crossings are handled.",
+    "root_cause": "Airborne integration has no side/underside collision resolution.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Sweep every airborne body against solids and world boundaries; resolve contact velocities.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-002",
+      "Thin-wall and seeded invariant tests"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-003",
+    "category": "Physics / characters",
+    "severity": "High",
+    "title": "Released people pass through roofs",
+    "gameplay_impact": "Released people pass through roofs",
+    "reproduction": "Drop a defender above a building, then destroy its support.",
+    "expected": "Land and recover on the roof; fall after support is removed.",
+    "actual": "The defender reaches ground inside the building.",
+    "root_cause": "Building contact handling exists only for carried cargo.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Share airborne contact handling across characters and cargo; validate support before grounded/stunned behavior.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-003"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-004",
+    "category": "Physics / beam",
+    "severity": "High",
+    "title": "Suspended cargo penetrates floor and stage edges",
+    "gameplay_impact": "Suspended cargo penetrates floor and stage edges",
+    "reproduction": "Hold a rock while hovering at y540 near the left boundary.",
+    "expected": "The rock remains above ground and within the stage.",
+    "actual": "The rock bottom reaches y649 below the y610 floor.",
+    "root_cause": "Beam followers directly update positions without geometry or bounds.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Move lifted bodies through the same bounded collision solver and report blocked cargo.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-004"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-005",
+    "category": "Physics / projectiles",
+    "severity": "Medium",
+    "title": "Distant cover shields a nearer UFO",
+    "gameplay_impact": "Distant cover shields a nearer UFO",
+    "reproduction": "Fire a stress-speed shot through a UFO with a building farther along the same segment.",
+    "expected": "The nearer UFO is hit first.",
+    "actual": "The building consumes the shot before the UFO is considered.",
+    "root_cause": "Collision loops are ordered by object category rather than time of impact.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Select the earliest hit among buildings, cargo and the moving ship.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-005"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-006",
+    "category": "Physics / projectiles",
+    "severity": "Medium",
+    "title": "Shots miss hits when a step ends outside the map",
+    "gameplay_impact": "Shots miss hits when a step ends outside the map",
+    "reproduction": "A fast shot crosses the UFO and finishes beyond the stage in one step.",
+    "expected": "Resolve the crossing before removing the projectile.",
+    "actual": "No damage is dealt.",
+    "root_cause": "Out-of-bounds cleanup runs before swept collision checks.",
+    "affected_files": [
+      "dist/sim.js"
+    ],
+    "fix": "Resolve the valid lifetime segment, then expire or remove the projectile.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-006"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-007",
+    "category": "Physics / impacts",
+    "severity": "Medium",
+    "title": "Fast dropped cargo tunnels through a defender",
+    "gameplay_impact": "Fast dropped cargo tunnels through a defender",
+    "reproduction": "Drop a stress-speed rock through a defender in one step.",
+    "expected": "A cargo impact defeats the defender once.",
+    "actual": "The defender survives because endpoint boxes no longer overlap.",
+    "root_cause": "Cargo damage uses only discrete final positions.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Sweep the actual cargo shape over its traveled path before applying impact damage.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-007",
+      "Original cargo challenge regression"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-008",
+    "category": "Spawning / AI",
+    "severity": "High",
+    "title": "A boss-stage defender spawns embedded in a building",
+    "gameplay_impact": "A boss-stage defender spawns embedded in a building",
+    "reproduction": "Create mission 5 with seed 1234, or iterate the first ten seeds.",
+    "expected": "Non-sheltered actors spawn outside solid rectangles.",
+    "actual": "A thrower at approximately x1293.93 overlaps the x1280 building.",
+    "root_cause": "Spawn placement does not validate collider extents.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Choose the nearest free horizontal spawn position; share depenetration for stale overlaps.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-008",
+      "Overlapping-geometry recovery fixture"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PHYS-009",
+    "category": "Physics / beam",
+    "severity": "High",
+    "title": "Lifted objects cut through solid scenery",
+    "gameplay_impact": "Lifted objects cut through solid scenery",
+    "reproduction": "Hold a rock left of a building while the ship is on its right.",
+    "expected": "Cargo remains on the near side or slides around the geometry.",
+    "actual": "The rock moves through the building.",
+    "root_cause": "Lifted movement bypasses collision entirely.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Apply continuous collision to beam following without disabling the beam or solids.",
+    "regression_tests": [
+      "audit-physics.test.mjs PHYS-009"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "AI-001",
+    "category": "Navigation",
+    "severity": "High",
+    "title": "A shelter target disables unrelated wall collisions",
+    "gameplay_impact": "A shelter target disables unrelated wall collisions",
+    "reproduction": "Assign a civilian a shelter beyond an intervening building.",
+    "expected": "Reject the unreachable route and retain collision.",
+    "actual": "The civilian walks through the intervening building.",
+    "root_cause": "A truthy shelterId bypasses all building checks.",
+    "affected_files": [
+      "dist/sim.js"
+    ],
+    "fix": "Validate a reachable entrance; enter shelter as an explicit protected state at the doorway.",
+    "regression_tests": [
+      "audit-physics.test.mjs AI-001"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "AI-002",
+    "category": "Vehicles / navigation",
+    "severity": "High",
+    "title": "Transports drive through solid buildings",
+    "gameplay_impact": "Transports drive through solid buildings",
+    "reproduction": "Drive a delivery truck toward a blocked drop-off.",
+    "expected": "Stop before the obstruction, unload safely, and return by a valid direction.",
+    "actual": "The truck crosses the building.",
+    "root_cause": "Scripted truck positions are integrated without collision.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/collision.js"
+    ],
+    "fix": "Sweep the route, stop and unload at a blockage, and reverse departure direction when necessary.",
+    "regression_tests": [
+      "audit-physics.test.mjs AI-002",
+      "Population-conservation regression"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "AI-003",
+    "category": "Shelter integration / presentation",
+    "severity": "Medium",
+    "title": "Doorway shelter needs protection and occupant feedback",
+    "gameplay_impact": "Doorway shelter needs protection and occupant feedback",
+    "reproduction": "Enter shelter at its new safe doorway position and activate the beam above it.",
+    "expected": "Sheltered occupants are protected and counted until exit or destruction.",
+    "actual": "Without an explicit exclusion, the doorway occupant remains beam eligible; the renderer has no occupancy data.",
+    "root_cause": "Shelter protection previously depended on physical overlap with the building.",
+    "affected_files": [
+      "dist/sim.js",
+      "dist/render.js"
+    ],
+    "fix": "Exclude sheltered targets from capture/impact decisions, count occupancy, hide the sheltered actor, and restore behavior on exit.",
+    "regression_tests": [
+      "audit-physics.test.mjs AI-003",
+      "Renderer contract test"
+    ],
+    "status": "Verified fixed",
+    "limitations": "This defect was found during integration of the collision-safe shelter correction."
+  },
+  {
+    "id": "AI-004",
+    "category": "Navigation / state recovery",
+    "severity": "Medium",
+    "title": "Agents repeat a blocked last-sighting move",
+    "gameplay_impact": "Agents repeat a blocked last-sighting move",
+    "reproduction": "Give an agent a remembered target beyond a wall after sight is lost.",
+    "expected": "Abandon the blocked intent briefly and make progress away from the wall.",
+    "actual": "Cached target steering repeatedly overrides the collision reversal.",
+    "root_cause": "There is no failed-route cooldown or memory invalidation on contact.",
+    "affected_files": [
+      "dist/sim.js"
+    ],
+    "fix": "Clear blocked target memory and apply a bounded navigation cooldown before reconsidering it.",
+    "regression_tests": [
+      "audit-physics.test.mjs AI-004"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "SAVE-001",
+    "category": "Persistence",
+    "severity": "High",
+    "title": "Older code overwrites future-version progress",
+    "gameplay_impact": "Older code overwrites future-version progress",
+    "reproduction": "Store version 2 with a version 1 backup, load, then change a preference.",
+    "expected": "Retain the newer record and report that the old client cannot save it.",
+    "actual": "persistSave returns true and replaces the newer schema.",
+    "root_cause": "Version rejection is implemented only in the loader.",
+    "affected_files": [
+      "dist/progression.js"
+    ],
+    "fix": "Refuse writes over unsupported primary schemas and preserve unsupported backup records.",
+    "regression_tests": [
+      "progression.test.mjs SAVE-001"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "SAVE-002",
+    "category": "Scoring / persistence",
+    "severity": "Medium",
+    "title": "Half-step multipliers lose rewards and records",
+    "gameplay_impact": "Half-step multipliers lose rewards and records",
+    "reproduction": "Complete a run with maxCombo 1.5, save and reload.",
+    "expected": "Keep 1.5 and award a 75-credit performance bonus.",
+    "actual": "The record becomes 1 and the bonus is 50.",
+    "root_cause": "A general integer normalizer is used for fractional multipliers.",
+    "affected_files": [
+      "dist/progression.js"
+    ],
+    "fix": "Validate half-step multipliers separately while retaining existing integer saves.",
+    "regression_tests": [
+      "progression.test.mjs SAVE-002"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "AUDIO-001",
+    "category": "Audio / resources",
+    "severity": "Medium",
+    "title": "Burst effects lack a voice cap and explicit graph cleanup",
+    "gameplay_impact": "Burst effects lack a voice cap and explicit graph cleanup",
+    "reproduction": "Trigger 100 effects at the audio boundary and finish the sources.",
+    "expected": "Bound simultaneous voices and release oscillator/gain connections.",
+    "actual": "100 oscillators are created with no ended cleanup callbacks.",
+    "root_cause": "Every effect constructs nodes without a cap or disconnect lifecycle.",
+    "affected_files": [
+      "dist/audio.js"
+    ],
+    "fix": "Cap effects at 16 voices, disconnect ended nodes, and provide explicit disposal.",
+    "regression_tests": [
+      "audio.test.mjs AUDIO-001",
+      "30-mission heap profile"
+    ],
+    "status": "Verified fixed",
+    "limitations": "The 100-event burst is a stress fixture. No browser audio-heap leak or speaker clipping measurement is claimed."
+  },
+  {
+    "id": "AUDIO-002",
+    "category": "Audio / scenes",
+    "severity": "Medium",
+    "title": "Victory notes outlive the scene that scheduled them",
+    "gameplay_impact": "Victory notes outlive the scene that scheduled them",
+    "reproduction": "Schedule victory audio, mute and re-enable immediately, then run pending callbacks.",
+    "expected": "Old scene notes are canceled.",
+    "actual": "All four delayed notes still play.",
+    "root_cause": "JavaScript timers are not owned or canceled by scene transitions.",
+    "affected_files": [
+      "dist/audio.js",
+      "dist/app.js"
+    ],
+    "fix": "Schedule notes on the audio clock and cancel all transient voices at scene, pause and mute boundaries.",
+    "regression_tests": [
+      "audio.test.mjs AUDIO-002",
+      "Browser pause/restart flow"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "AUDIO-003",
+    "category": "Audio / errors",
+    "severity": "Medium",
+    "title": "Rejected browser audio resume becomes unhandled",
+    "gameplay_impact": "Rejected browser audio resume becomes unhandled",
+    "reproduction": "Make AudioContext.resume reject.",
+    "expected": "Report the failure once and continue gameplay.",
+    "actual": "The resume rejection is unhandled.",
+    "root_cause": "A synchronous try/catch cannot catch a rejected resume promise.",
+    "affected_files": [
+      "dist/audio.js"
+    ],
+    "fix": "Handle resume/close promise rejection and report unavailable audio.",
+    "regression_tests": [
+      "audio.test.mjs AUDIO-003"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "AUDIO-004",
+    "category": "Audio / device failure",
+    "severity": "Medium",
+    "title": "Beam source creation failure can terminate a frame",
+    "gameplay_impact": "Beam source creation failure can terminate a frame",
+    "reproduction": "Make oscillator creation throw after context initialization.",
+    "expected": "Optional audio failure is reported without stopping the game.",
+    "actual": "The beam path throws to the main frame loop.",
+    "root_cause": "Unlike tone creation, beam graph construction has no error boundary.",
+    "affected_files": [
+      "dist/audio.js"
+    ],
+    "fix": "Catch and report beam graph failure, release partial state, and preserve gameplay.",
+    "regression_tests": [
+      "audio.test.mjs AUDIO-004"
+    ],
+    "status": "Fixed, partially verified",
+    "limitations": "Fault injection passes; physically disconnecting an output device was not tested."
+  },
+  {
+    "id": "UI-001",
+    "category": "UI / keyboard",
+    "severity": "Medium",
+    "title": "Escape fails in a settings select and nested menus resume unexpectedly",
+    "gameplay_impact": "Escape fails in a settings select and nested menus resume unexpectedly",
+    "reproduction": "Open settings, focus the difficulty select, and press Escape; repeat from pause.",
+    "expected": "Escape closes the dialog and nested settings return to pause.",
+    "actual": "The early input-element return ignores Escape; closing nested settings resumes play.",
+    "root_cause": "Keyboard routing checks form targets before modal commands and has no modal parent.",
+    "affected_files": [
+      "dist/app.js"
+    ],
+    "fix": "Route modal commands first, track the pause parent, and restore game focus on resume.",
+    "regression_tests": [
+      "client.test.mjs UI-001",
+      "Actual browser select/Escape and nested pause/settings"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "UI-002",
+    "category": "UI / focus",
+    "severity": "Medium",
+    "title": "Modal focus can escape to unrelated page controls",
+    "gameplay_impact": "Modal focus can escape to unrelated page controls",
+    "reproduction": "Open settings and Shift-Tab from its first control.",
+    "expected": "Focus wraps inside the dialog.",
+    "actual": "Focus reaches controls outside the dialog.",
+    "root_cause": "Only part of the interface is inert and there is no keyboard focus trap.",
+    "affected_files": [
+      "dist/app.js"
+    ],
+    "fix": "Isolate all background sections, wrap Tab focus, and restore a valid focus target.",
+    "regression_tests": [
+      "client.test.mjs UI-002",
+      "Actual browser Shift-Tab wraps to All set"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "UI-003",
+    "category": "Input routing",
+    "severity": "Medium",
+    "title": "Right click activates the beam and unrelated releases interrupt it",
+    "gameplay_impact": "Right click activates the beam and unrelated releases interrupt it",
+    "reproduction": "Right-click the canvas, or release another finger while a mouse beam is held.",
+    "expected": "Only the owning primary pointer controls that beam.",
+    "actual": "Right-click starts it; any pointer release stops it.",
+    "root_cause": "Pointer state has no button filter, ownership, or lost-capture handling.",
+    "affected_files": [
+      "dist/app.js"
+    ],
+    "fix": "Track each input owner, filter primary clicks, and handle cancel/lost capture.",
+    "regression_tests": [
+      "client.test.mjs UI-003"
+    ],
+    "status": "Fixed, partially verified",
+    "limitations": "Mouse/keyboard browser checks and synthetic pointer regression pass; physical multi-touch hardware was not available."
+  },
+  {
+    "id": "UI-004",
+    "category": "Touch / pause",
+    "severity": "Medium",
+    "title": "A held joystick finger can resume stale movement",
+    "gameplay_impact": "A held joystick finger can resume stale movement",
+    "reproduction": "Hold the stick, pause/resume, and move the old pointer without a new press.",
+    "expected": "Reset ownership and require a new press.",
+    "actual": "The old pointer changes movement after resume.",
+    "root_cause": "Reset clears axes but leaves the captured pointer ID valid.",
+    "affected_files": [
+      "dist/app.js"
+    ],
+    "fix": "Clear IDs, release owned capture, and ignore stale/secondary pointers.",
+    "regression_tests": [
+      "client.test.mjs UI-004"
+    ],
+    "status": "Fixed, partially verified",
+    "limitations": "Synthetic multi-pointer lifecycle passes; physical touch hardware was not tested."
+  },
+  {
+    "id": "UI-005",
+    "category": "Graphics / input scaling",
+    "severity": "Medium",
+    "title": "Display backing size, camera and pointer coordinates can diverge",
+    "gameplay_impact": "Display backing size, camera and pointer coordinates can diverge",
+    "reproduction": "Resize to an extreme aspect ratio or a high-DPI viewport.",
+    "expected": "Use bounded logical world dimensions, a clear backing buffer, and drawable-area hit testing.",
+    "actual": "An ultrawide fixture allocates width 7200 and the camera uses different limits; backing resolution ignores display scale.",
+    "root_cause": "Canvas backing pixels are used as world coordinates and are derived from the unconstrained window ratio.",
+    "affected_files": [
+      "dist/app.js",
+      "dist/styles.css"
+    ],
+    "fix": "Separate logical viewport, CSS drawable area and bounded backing resolution; map pointers through the actual canvas rectangle.",
+    "regression_tests": [
+      "client.test.mjs UI-005",
+      "Browser 320/768/1280/1920 layouts"
+    ],
+    "status": "Fixed, partially verified",
+    "limitations": "Actual native fullscreen transition and physical high-DPI hardware were not confirmed in the in-app browser."
+  },
+  {
+    "id": "UI-006",
+    "category": "Animation / pause",
+    "severity": "Low",
+    "title": "Actors keep animating while gameplay is paused",
+    "gameplay_impact": "Actors keep animating while gameplay is paused",
+    "reproduction": "Pause after a moving character or effect is visible.",
+    "expected": "Gameplay animation pauses with simulation time.",
+    "actual": "The renderer continues using the wall clock.",
+    "root_cause": "Rendering uses requestAnimationFrame timestamp rather than simulation time.",
+    "affected_files": [
+      "dist/app.js"
+    ],
+    "fix": "Render active gameplay from game.time; retain ambient menu timing.",
+    "regression_tests": [
+      "client.test.mjs UI-006",
+      "Actual browser pause flow"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "UI-007",
+    "category": "Responsive layout",
+    "severity": "Medium",
+    "title": "Phone title actions are clipped and header credits wrap",
+    "gameplay_impact": "Phone title actions are clipped and header credits wrap",
+    "reproduction": "Use the title at 320x640.",
+    "expected": "The main action is visible and credits remain readable.",
+    "actual": "The short game panel clips the action and squeezes the balance onto two lines.",
+    "root_cause": "The phone canvas aspect ratio is too short for title content, and header content can shrink/wrap.",
+    "affected_files": [
+      "dist/styles.css"
+    ],
+    "fix": "Give narrow phones a taller game frame, allow scrollable menus, contain balance text, and improve HUD labels.",
+    "regression_tests": [
+      "Browser screenshots/phone.png",
+      "320-pixel mission launch and shop navigation"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "CRASH-001",
+    "category": "Startup / runtime recovery",
+    "severity": "Medium",
+    "title": "Missing Canvas or an unexpected render exception leaves no recovery UI",
+    "gameplay_impact": "Missing Canvas or an unexpected render exception leaves no recovery UI",
+    "reproduction": "Return null from getContext, or throw during a frame.",
+    "expected": "Display a recovery action, preserve banked data, and retain the diagnostic.",
+    "actual": "A blank or frozen game is left without recovery guidance.",
+    "root_cause": "No explicit startup capability check or frame error boundary exists.",
+    "affected_files": [
+      "dist/app.js",
+      "dist/index.html"
+    ],
+    "fix": "Report the original cause, stop the failed loop, and show a reload action without resetting progress.",
+    "regression_tests": [
+      "client.test.mjs CRASH-001"
+    ],
+    "status": "Fixed, partially verified",
+    "limitations": "Missing Canvas is fault-injected; actual GPU/context-loss and device recovery were not forced."
+  },
+  {
+    "id": "CRASH-002",
+    "category": "Platform initialization",
+    "severity": "Medium",
+    "title": "Missing ResizeObserver prevents startup",
+    "gameplay_impact": "Missing ResizeObserver prevents startup",
+    "reproduction": "Launch in a runtime without ResizeObserver.",
+    "expected": "Start with a resize-event fallback.",
+    "actual": "ReferenceError occurs during initialization.",
+    "root_cause": "ResizeObserver is constructed unconditionally.",
+    "affected_files": [
+      "dist/app.js"
+    ],
+    "fix": "Feature-detect the observer and retain window resize handling.",
+    "regression_tests": [
+      "client.test.mjs UI-006 without observer"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Verification is limited to the scenarios and environment described below."
+  },
+  {
+    "id": "PERF-001",
+    "category": "Performance",
+    "severity": "Low",
+    "title": "Initial collision correction allocates excessively in hot paths",
+    "gameplay_impact": "Initial collision correction allocates excessively in hot paths",
+    "reproduction": "Profile 30 seeded missions after the first collision correction.",
+    "expected": "Retain collision correctness with bounded per-step allocation.",
+    "actual": "Initial corrected p95 step time is 0.108ms versus a 0.028ms baseline.",
+    "root_cause": "CPU samples point to movement, segment queries, object spreads and garbage collection.",
+    "affected_files": [
+      "dist/collision.js",
+      "dist/sim.js"
+    ],
+    "fix": "Use scalar slab math, avoid temporary axis arrays/shape spreads, and iterate a stable entity-count snapshot without copying the array.",
+    "regression_tests": [
+      "scripts/profile.mjs",
+      "Full physics and campaign regressions"
+    ],
+    "status": "Verified fixed",
+    "limitations": "Final p95 is 0.035ms on this machine; the corrected solver still does more work than the less-correct baseline. No universal FPS or GPU claim is made."
+  }
+]

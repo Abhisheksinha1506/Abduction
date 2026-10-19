@@ -1,0 +1,24 @@
+{
+  "source": "/private/tmp/abduction-audit-baseline-20261019/dist",
+  "node": "v24.9.0",
+  "scenario": "30 seeded missions; 5 warmups; explicit GC between 10-run batches",
+  "ticks": 161698,
+  "averageMs": 0.016562048485448837,
+  "p50Ms": 0.015,
+  "p95Ms": 0.028,
+  "p99Ms": 0.056,
+  "percentileOverflow": "Durations above 2ms share the final bucket",
+  "peaks": {
+    "entities": 33,
+    "projectiles": 4,
+    "particles": 66,
+    "texts": 6,
+    "events": 4
+  },
+  "postGcHeapBytes": [
+    4449352,
+    4531568,
+    4550416,
+    4483280
+  ]
+}

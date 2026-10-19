@@ -1,0 +1,4 @@
+AUDIO-001: baseline boundary test created 100 simultaneous oscillators; 0 ended cleanup callbacks.
+AUDIO-002: all 4 victory callbacks still played after mute and immediate re-enable.
+AUDIO-003: rejected resume produced an unhandled rejection: resume denied.
+Boundary tests use a controlled Web Audio implementation; these are not speaker listening or browser heap measurements.

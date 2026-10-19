@@ -1,0 +1,2100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071c24">
+  <meta name="description" content="Earth is open for business. Pilot a UFO, turn cargo into weapons, and upgrade your ship in a complete five-mission arcade adventure.">
+  <title>Abduction — Midnight Harvest</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%230b242e'/%3E%3Cellipse cx='32' cy='27' rx='14' ry='13' fill='%23b5fbc9'/%3E%3Cellipse cx='32' cy='37' rx='26' ry='10' fill='%23dce9db'/%3E%3Ccircle cx='18' cy='38' r='3' fill='%231e8e7c'/%3E%3Ccircle cx='32' cy='40' r='3' fill='%231e8e7c'/%3E%3Ccircle cx='46' cy='38' r='3' fill='%231e8e7c'/%3E%3C/svg%3E">
+  <style>:root{color-scheme:dark;--bg:#071b22;--panel:#0d2931;--ink:#eff3e6;--muted:#8fa6a8;--lime:#c3f59b;--mint:#82dfc3;--line:#ffffff18;--coral:#f99c81;--display:'Barlow Condensed','Arial Narrow',Impact,sans-serif;--body:'DM Sans',Arial,sans-serif}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px var(--body)}button,a,input,select{-webkit-tap-highlight-color:transparent}button{font:inherit;color:inherit;cursor:pointer}button:disabled{cursor:not-allowed;opacity:.42}button,a{touch-action:manipulation}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--lime);outline-offset:4px}button{border:0}a{color:inherit;text-decoration:none}.app-shell{max-width:1600px;margin:auto;padding:0 56px}.topbar{height:88px;display:flex;align-items:center;justify-content:space-between;gap:22px}.brand{display:flex;align-items:center;gap:10px;font-family:var(--display);font-size:27px;font-weight:800;letter-spacing:2px}.brand svg{width:34px;fill:none;stroke:var(--lime);stroke-width:1.7}.brand-dot{font-size:10px;vertical-align:top;line-height:24px;margin-left:4px}.top-center{font-size:9px;letter-spacing:1.8px;color:var(--muted);display:flex;align-items:center;gap:10px}.status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--mint);box-shadow:0 0 8px #8be2bc44}.header-actions{display:flex;align-items:center;gap:10px}.balance{font-size:12px;letter-spacing:1px;margin-right:12px}.balance span{color:var(--lime);font-size:18px;margin-right:6px}.icon-button{background:#ffffff06;border:1px solid var(--line);width:34px;height:34px;border-radius:50%;font-size:18px;display:grid;place-items:center}.icon-button:hover{background:#ffffff15}.game-wrap{position:relative;aspect-ratio:16/9;overflow:hidden;border-radius:12px;border:1px solid #ffffff1c;background:#123b46;isolation:isolate;box-shadow:0 30px 80px #0003}canvas{display:block;width:100%;height:100%;touch-action:none}.scene-vignette{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#061820b8,transparent 70%),linear-gradient(0deg,#03181a33,transparent 22%);z-index:1;transition:opacity .3s}.game-wrap.playing .scene-vignette{opacity:0}.screen{position:absolute;inset:0;z-index:2}.hidden{display:none!important}.eyebrow{font-size:10px;font-weight:700;letter-spacing:2px;color:var(--mint);display:block}.home{position:absolute;inset:0;padding:6.5% 6%;display:flex;flex-direction:column;align-items:flex-start;justify-content:center}.home .eyebrow{border:1px solid #bfecc13d;padding:7px 11px;border-radius:3px;display:flex;align-items:center;gap:8px;color:var(--lime);font-size:9px;letter-spacing:2.7px}.home h1{font:800 clamp(52px,7.5vw,112px)/.82 var(--display);letter-spacing:-1px;margin:24px 0 10px;text-shadow:0 4px 40px #061d2733}.home h1 span{display:block;color:var(--lime)}.home .edition{font-family:var(--display);font-size:20px;letter-spacing:7px;font-weight:500;margin:10px 0 18px;color:#cadad0}.home p{max-width:360px;color:#b9cacc;line-height:1.75;font-size:13px;margin:0 0 26px}.primary{border-radius:5px;background:var(--lime);color:#183323;font-weight:700;padding:15px 25px;display:inline-flex;align-items:center;justify-content:center;gap:24px;box-shadow:0 4px 22px #0002;transition:transform .15s,background .15s}.primary:hover{background:#d4ffb1;transform:translateY(-1px)}.primary .arrow{font-size:21px;line-height:12px}.secondary{background:#ffffff06;border:1px solid #ffffff26;border-radius:5px;padding:13px 20px;display:inline-flex;align-items:center;justify-content:center;gap:12px;font-size:12px}.secondary:hover{background:#ffffff12}.text-button{background:none;padding:10px 0;border-bottom:1px solid #b1c8c050;color:#c6d8d3;font-size:12px}.home-actions{display:flex;align-items:center;gap:26px}.home-meta{display:flex;gap:17px;color:#8ca7a4;font-size:8px;letter-spacing:1.3px;margin-top:22px}.home-meta i{font-style:normal;color:#bfdc83}.location-tag{position:absolute;right:28px;bottom:28px;text-align:right;font-size:9px;color:#d7e8d1;letter-spacing:1.8px;line-height:2}.location-tag span{display:block;color:#97b6b0;font-size:8px}.signal-label{position:absolute;right:6%;top:7%;display:flex;gap:7px;align-items:center;font-size:8px;letter-spacing:2px;color:#b0d3ce}.signal-label .status-dot{background:var(--lime)}.underbar{display:flex;justify-content:space-between;gap:20px;padding:16px 3px;color:#789696;font-size:8px;letter-spacing:1.3px}.underbar>span{display:flex;gap:9px;align-items:center}.underbar i:not(.status-dot){font-style:normal;color:#35535a}.underbar button{font-size:8px;letter-spacing:1.3px;color:#b4c6bd;background:none;padding:0}.below-game{border-top:1px solid var(--line);margin-top:9px;padding:30px 2px 34px;display:flex;justify-content:space-between;align-items:center;gap:20px}.below-game .eyebrow{font-size:8px;letter-spacing:1.6px;color:#91aaa7}.below-game h2{font-family:var(--display);font-size:28px;margin:8px 0 0;font-weight:500}.control-summary{display:flex;gap:30px}.control-summary>div{display:flex;flex-direction:column;gap:10px}.control-summary small{color:#7b9799;font-size:9px}.control-summary>div>span{height:22px;display:flex;align-items:center;gap:4px;font-size:10px}kbd{font-family:var(--body);font-size:9px;border:1px solid #fff2;border-bottom-width:2px;border-radius:3px;min-width:21px;padding:4px 5px;text-align:center;color:#c6d3c9}.mouse-symbol{font-size:21px!important}.mouse-symbol b{font-size:9px;font-weight:500;letter-spacing:1px;margin-left:7px}.page-footer{border-top:1px solid var(--line);padding:24px 0 28px;color:#536f73;font-size:8px;letter-spacing:1.5px;display:flex;justify-content:space-between}.page-footer i{font-style:normal;margin:0 9px}.menu-panel{height:100%;background:#071e27ed;backdrop-filter:blur(12px);padding:30px 40px;overflow:auto}.menu-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.menu-head h2{font:700 38px/1 var(--display);margin:8px 0 0}.back-button{color:#aac0bb;background:none;font-size:11px;padding:8px}.mission-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.mission-card{padding:0;text-align:left;border:1px solid #ffffff17;background:#11313a;border-radius:7px;overflow:hidden;min-width:0;transition:transform .2s,border-color .2s}.mission-card:hover:not(:disabled){transform:translateY(-4px);border-color:#c3f59b80}.mission-card.selected{border-color:var(--lime);background:#173b3d}.mission-art{height:115px;position:relative;overflow:hidden;background:linear-gradient(#173e50,#3b7068)}.mission-art:before{content:'';position:absolute;width:190%;height:140px;border-radius:50%;background:#294e4a;top:60%;left:-30%;transform:rotate(-10deg)}.mission-art:after{content:'';position:absolute;width:180%;height:100px;border-radius:50%;background:#1c373a;top:80%;left:-40%;transform:rotate(12deg)}.mission-art .moon{position:absolute;width:32px;height:32px;top:15px;right:22px;border-radius:50%;background:#d2e8b2;box-shadow:0 0 30px #c6f9c533}.mission-art .building{position:absolute;width:49px;height:39px;bottom:10px;left:32%;background:#d77564;z-index:1;clip-path:polygon(50% 0,100% 35%,90% 35%,90% 100%,10% 100%,10% 35%,0 35%)}.mission-art .building:after{content:'';position:absolute;bottom:0;left:35%;width:30%;height:45%;background:#693b3a}.mission-art .sector-number{position:absolute;left:13px;top:10px;font:600 21px var(--display);color:#daeddbb0}.mission-art.theme-town{background:linear-gradient(#293a51,#84666c)}.mission-art.theme-industrial{background:linear-gradient(#182b3c,#6b7761)}.mission-art.theme-base{background:linear-gradient(#242d48,#655971)}.mission-art.theme-boss{background:linear-gradient(#342f45,#704754)}.theme-industrial .building,.theme-base .building{clip-path:polygon(0 35%,20% 35%,20% 0,35% 0,35% 35%,100% 35%,100% 100%,0 100%);background:#607b76}.theme-boss .building{background:#a2aeb5;clip-path:polygon(25% 0,75% 0,75% 20%,100% 20%,100% 60%,80% 60%,80% 100%,60% 100%,60% 70%,40% 70%,40% 100%,20% 100%,20% 60%,0 60%,0 20%,25% 20%);width:62px;height:67px;left:30%}.mission-card-content{padding:15px 13px}.mission-card h3{font:600 20px/1.1 var(--display);margin:6px 0 14px;min-height:44px}.mission-card .eyebrow{font-size:7px;letter-spacing:1.2px;color:#9bb9b2}.mission-card .card-status{font-size:8px;color:var(--lime);letter-spacing:.9px}.mission-card:disabled .mission-art{filter:saturate(.3)}.mission-detail{display:flex;justify-content:space-between;gap:25px;margin-top:24px;align-items:center;border-top:1px solid var(--line);padding-top:20px}.mission-detail p{color:#a9bfba;font-size:12px;line-height:1.7;max-width:610px;margin:0 0 8px}.optional-goals{display:flex;gap:18px;font-size:9px;color:#7faaa1}.menu-tabs{display:flex;gap:8px}.brief-content{max-width:620px;margin:0 auto;text-align:center;padding:3% 0}.brief-content h2{font:700 52px var(--display);margin:12px 0 16px}.brief-content p{color:#b6cac5;font-size:14px;line-height:1.8}.brief-instruction{border:1px solid #c3f59b30;border-radius:6px;background:#c3f59b06;padding:15px 20px;color:#d5e6c6;margin:24px 0;font-size:12px;line-height:1.8}.brief-actions{display:flex;justify-content:center;gap:12px}.upgrade-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}.upgrade-card{background:#123039;border:1px solid var(--line);border-radius:7px;padding:20px 16px;display:flex;flex-direction:column;min-width:0}.upgrade-icon{width:44px;height:44px;display:grid;place-items:center;color:var(--lime);margin-bottom:14px}.upgrade-icon svg{width:36px;height:36px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round}.upgrade-card h3{font:600 22px var(--display);margin:0 0 8px}.upgrade-card p{font-size:10px;line-height:1.6;color:#a3b9b4;min-height:36px;margin:0 0 14px}.upgrade-levels{display:flex;gap:5px;margin-bottom:20px}.upgrade-levels i{height:4px;flex:1;background:#ffffff19;border-radius:2px}.upgrade-levels i.filled{background:var(--lime)}.upgrade-card button{margin-top:auto;background:#c3f59b;color:#1e3727;border-radius:4px;padding:10px 5px;font-size:10px;font-weight:700}.hangar-note{color:#859f9b;font-size:11px;margin:22px 0 0}.hud{position:absolute;inset:0;pointer-events:none;z-index:2}.hud-top{position:absolute;left:26px;right:26px;top:22px;display:flex;align-items:center;gap:20px}.hud-top:before{content:'';position:absolute;z-index:-1;inset:-23px -28px -35px;background:linear-gradient(#061d27cc,transparent)}.hud-mission{flex:1}.hud-mission .eyebrow{font-size:8px;color:#b8d7c2;margin-bottom:5px}.hud-mission strong{font:600 25px var(--display);letter-spacing:.4px}.hud-timer{text-align:center;margin-right:5px}.hud-timer>span{display:block;font-size:7px;letter-spacing:1.4px;color:#b7d0c7}.hud-timer>strong{font:600 33px var(--display)}.hud .icon-button{pointer-events:auto;background:#0d2c32a0}.hud-bottom{position:absolute;left:26px;right:26px;bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:18px}.hud-bottom:before{content:'';position:absolute;z-index:-1;inset:-45px -28px -22px;background:linear-gradient(transparent,#04171ce6)}.hud-stats{display:flex;gap:22px}.meter-block{width:135px}.meter-block>div:first-child{display:flex;justify-content:space-between;gap:10px;font-size:7px;letter-spacing:1px;margin-bottom:7px}.meter-block strong{font-size:8px;color:#bde9c5}.meter{height:5px;background:#ffffff20;border-radius:4px;overflow:hidden}.meter i{display:block;width:100%;height:100%;background:var(--lime);transition:width .12s}.beam-meter .meter i{background:var(--mint);width:0}.hud-feedback{color:#cde6cc;letter-spacing:1.4px;font-size:8px;text-align:center}.cargo-count{display:flex;align-items:center;gap:12px}.cargo-count>span:first-child{font-size:7px;letter-spacing:1.2px;color:#bed5c7}.cargo-count>strong{font:600 34px var(--display)}.combo{font:600 25px var(--display);color:var(--lime);border:1px solid #a5d0aa44;padding:1px 9px;border-radius:4px}.tutorial-tip{position:absolute;top:100px;left:50%;transform:translateX(-50%);background:#07212cdc;border:1px solid #a8dcb744;padding:10px 20px;border-radius:30px;font-size:10px;text-align:center;color:#d7e8d3;max-width:80%;transition:opacity .3s}.tutorial-tip:empty{display:none}.modal-layer{position:absolute;inset:0;background:#03151dc9;backdrop-filter:blur(10px);z-index:5;display:grid;place-items:center;padding:20px;overflow:auto}.modal{background:#102c35;border:1px solid #9ec3ad33;width:min(460px,100%);padding:28px 32px;border-radius:10px;box-shadow:0 25px 75px #0004;max-height:100%;overflow:auto}.modal h2{font:600 40px var(--display);margin:5px 0 20px}.modal p{color:#a5beb9;font-size:12px;line-height:1.7}.modal .button-stack{display:flex;flex-direction:column;gap:10px}.modal .button-stack button{width:100%}.setting-row{display:flex;justify-content:space-between;align-items:center;gap:20px;border-top:1px solid var(--line);padding:16px 0;font-size:12px}.setting-row small{display:block;color:#87a5a0;font-size:9px;margin-top:5px}.setting-row select{background:#1c4047;border:1px solid #7da89544;color:#dae6d9;border-radius:4px;padding:8px;font:11px var(--body)}.setting-row input{accent-color:var(--lime);width:18px;height:18px}.save-message{font-size:10px!important;color:#7faaa1!important}.controls-list{display:grid;grid-template-columns:auto 1fr;gap:13px 24px;margin:20px 0;color:#abc4bc;font-size:11px;align-items:center}.controls-list dt{color:var(--ink)}.controls-list dd{margin:0}.results{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center;height:100%;padding:35px 7%;background:#071e27ed;backdrop-filter:blur(14px);overflow:auto}.results h2{font:700 65px/.95 var(--display);margin:18px 0}.results p{font-size:12px;line-height:1.8;color:#a8c3bc}.results .result-totals{display:flex;gap:30px;margin:24px 0}.result-totals strong{font:600 36px var(--display);display:block;color:var(--lime)}.result-totals span{font-size:8px;letter-spacing:1.3px;color:#9ebcb2}.payout-card{background:#12343a;border:1px solid #b8d7b426;border-radius:9px;padding:24px}.payout-card h3{margin:0 0 20px;font-size:10px;letter-spacing:2px;font-weight:500;color:#aec2b5}.payout-row{display:flex;justify-content:space-between;font-size:11px;margin:16px 0;color:#b2c7be}.payout-row.total{border-top:1px solid var(--line);padding-top:16px;font-size:14px;color:var(--lime);font-weight:700}.results-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}.results-actions button{font-size:11px;padding:13px 19px}.goal-result{display:flex;gap:8px;align-items:center;font-size:10px;margin:12px 0;color:#819e96}.goal-result.done{color:var(--lime)}.toast{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;background:#d1f3b7;color:#163225;border:1px solid #f1ffe5;border-radius:6px;padding:11px 20px;font-size:11px;box-shadow:0 8px 30px #0004;max-width:90%;text-align:center}.touch-controls{display:none}.game-wrap:fullscreen{border:0;border-radius:0;width:100vw;height:100vh;aspect-ratio:auto;background:#05171c;display:flex;align-items:center;justify-content:center}.game-wrap:fullscreen canvas{object-fit:contain}.game-wrap:fullscreen .screen{max-width:177.78vh;max-height:56.25vw;margin:auto}.game-wrap:fullscreen .home h1{font-size:clamp(80px,9vw,150px)}
+@media(min-width:1600px){.home h1{font-size:112px}}@media(max-width:1100px){.app-shell{padding:0 28px}.top-center{display:none}.topbar{height:76px}.home h1{font-size:8.5vw}.home .edition{font-size:16px;letter-spacing:5px}.home p{font-size:11px;max-width:300px;margin-bottom:18px}.home h1{margin-top:18px}.home-meta{margin-top:16px}.control-summary{gap:18px}.below-game h2{font-size:23px}.menu-panel{padding:24px}.mission-art{height:90px}.mission-card-content{padding:11px}.mission-card h3{font-size:18px}.mission-detail{margin-top:18px;padding-top:14px}.mission-detail p{font-size:11px}.upgrade-card{padding:15px 12px}.upgrade-card h3{font-size:20px}.brief-content{padding:0}.brief-content h2{font-size:42px}.brief-content p{font-size:12px}.brief-instruction{margin:18px 0}.results{gap:25px;padding:25px 5%}.results h2{font-size:48px}.payout-card{padding:18px}.payout-row{margin:12px 0}.hud-mission strong{font-size:21px}}
+@media(max-width:760px){.app-shell{padding:0 16px}.topbar{height:64px}.brand{font-size:23px}.brand svg{width:28px}.header-actions{gap:7px}.balance{margin-right:3px;font-size:10px}.icon-button{width:30px;height:30px}.game-wrap{aspect-ratio:4/3}.game-wrap canvas{object-fit:cover;object-position:50%}.home{padding:6%;justify-content:center}.home h1{font-size:12vw}.home .eyebrow{font-size:7px;letter-spacing:1.7px;padding:5px 8px}.home .edition{font-size:13px;letter-spacing:4px;margin:7px 0 13px}.home p{font-size:10px;max-width:245px;line-height:1.6}.home .primary{font-size:11px;padding:12px 18px;gap:16px}.home .text-button{font-size:10px}.home-actions{gap:20px}.home-meta{font-size:6px;gap:10px}.location-tag{font-size:7px;right:14px;bottom:14px}.location-tag span{font-size:6px}.signal-label{font-size:6px;top:5%;right:5%}.underbar{font-size:6px;padding:13px 1px;letter-spacing:.8px}.underbar-right{font-size:0!important;gap:0!important}.underbar-right i{display:none}.underbar button{font-size:7px}.below-game{align-items:flex-start;flex-direction:column;padding:23px 0;gap:22px}.control-summary{width:100%;justify-content:space-between;gap:10px}.control-summary small{font-size:7px}.control-summary>div>span{font-size:7px}.control-summary kbd{font-size:7px;min-width:15px;padding:3px}.control-summary .mouse-symbol b{font-size:7px}.page-footer{font-size:6px;letter-spacing:1px}.menu-panel{padding:18px}.menu-head{margin-bottom:15px}.menu-head h2{font-size:28px}.menu-head .eyebrow{font-size:7px}.menu-tabs{gap:4px}.menu-tabs .secondary{font-size:9px;padding:9px 12px}.mission-grid{gap:7px;grid-template-columns:repeat(5,minmax(105px,1fr));overflow-x:auto;padding-bottom:8px}.mission-art{height:72px}.mission-card h3{font-size:17px;min-height:38px;margin-bottom:7px}.mission-card .card-status{font-size:6px}.mission-card .eyebrow{font-size:6px;letter-spacing:.8px}.mission-detail{margin-top:7px;padding-top:12px;gap:12px;align-items:flex-start}.mission-detail p{font-size:10px}.mission-detail .primary{font-size:10px;padding:11px 15px;white-space:nowrap}.optional-goals{flex-direction:column;gap:6px;font-size:8px}.upgrade-grid{grid-template-columns:repeat(5,minmax(125px,1fr));overflow-x:auto;padding-bottom:10px;gap:9px}.upgrade-card{padding:13px}.upgrade-icon{margin-bottom:8px;width:32px;height:32px}.upgrade-icon svg{width:29px;height:29px}.upgrade-card h3{font-size:19px}.upgrade-card p{font-size:9px;min-height:43px}.upgrade-levels{margin-bottom:13px}.hangar-note{font-size:9px;margin-top:12px}.brief-content h2{font-size:35px;margin:8px 0 12px}.brief-content p{font-size:11px;line-height:1.6}.brief-instruction{font-size:10px;padding:10px;margin:13px 0}.brief-actions button{padding:11px 17px;font-size:10px}.hud-top{left:15px;right:15px;top:14px;gap:10px}.hud-mission strong{font-size:18px}.hud-mission .eyebrow{font-size:6px}.hud-timer>strong{font-size:26px}.hud-timer>span{font-size:5px}.hud-bottom{left:15px;right:15px;bottom:15px;gap:12px}.hud-stats{gap:12px}.meter-block{width:85px}.meter-block>div:first-child{font-size:5px;letter-spacing:.4px}.meter-block strong{font-size:6px}.cargo-count{gap:7px}.cargo-count>strong{font-size:26px}.cargo-count>span:first-child{display:none}.combo{font-size:20px}.hud-feedback{font-size:6px;letter-spacing:.5px}.tutorial-tip{top:67px;font-size:8px;padding:7px 13px;max-width:90%;width:max-content}.modal{padding:20px 22px}.modal h2{font-size:32px;margin-bottom:14px}.modal p{font-size:11px}.setting-row{padding:12px 0}.controls-list{font-size:10px;gap:10px 18px}.results{padding:20px;gap:18px}.results .eyebrow{font-size:7px}.results h2{font-size:37px;margin:12px 0}.results p{font-size:10px}.results .result-totals{margin:15px 0;gap:18px}.result-totals strong{font-size:27px}.result-totals span{font-size:6px}.payout-card{padding:13px}.payout-card h3{font-size:8px;margin-bottom:10px}.payout-row{font-size:9px;margin:10px 0}.payout-row.total{font-size:12px;padding-top:12px}.goal-result{font-size:8px;margin:8px 0}.results-actions{gap:7px;margin-top:15px}.results-actions button{font-size:9px;padding:10px 12px}}
+@media(pointer:coarse){.touch-controls{display:flex;position:absolute;left:25px;right:25px;bottom:65px;justify-content:space-between;align-items:flex-end;pointer-events:none}.touch-stick{width:90px;height:90px;background:#bcebd318;border:1px solid #d3f2db44;border-radius:50%;position:relative;pointer-events:auto;touch-action:none}.touch-stick i{position:absolute;left:29px;top:29px;width:30px;height:30px;background:#c4eec55c;border:1px solid #dcffe18c;border-radius:50%}#touch-beam{width:67px;height:67px;background:#bdeaa332;border:1px solid #c7f99c77;border-radius:50%;color:#e6f6d1;font-size:10px;letter-spacing:1px;pointer-events:auto;touch-action:none}.tutorial-tip{top:65px}.hud-feedback{display:none}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+.home h1 span{font-size:.27em;letter-spacing:.23em;line-height:1.4;margin-top:13px}.home .edition{font-size:12px;letter-spacing:2.8px;margin:12px 0 18px}.home h1{margin-bottom:0}
+@media(max-width:760px){.home h1 span{font-size:.28em;letter-spacing:.16em;margin-top:9px}.home .edition{font-size:8px;letter-spacing:1.8px;margin:12px 0}}
+
+/* Audit: contain the drawable viewport and keep all short-screen menus reachable. */
+#game{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);object-fit:fill}
+.game-wrap:fullscreen .screen{max-width:none;max-height:none}
+.home{overflow-y:auto}.location-tag,.signal-label{pointer-events:none}
+.modal-layer{overscroll-behavior:contain}.modal{min-height:0}
+@media(max-width:760px){.meter-block>div:first-child{font-size:8px;letter-spacing:.2px}.meter-block strong{font-size:8px}.hud-feedback{font-size:8px}.home{justify-content:flex-start;padding-top:8%}.menu-head{flex-wrap:wrap;gap:12px}.mission-detail{flex-wrap:wrap}}
+@media(max-width:480px){.home h1{font-size:clamp(32px,10vw,48px)}.home .eyebrow{font-size:6px}.home p{font-size:10px;margin-bottom:15px}.home-meta{margin-bottom:12px}.location-tag{display:none}.home-actions{gap:16px}.home .primary{padding:11px 13px}.results{grid-template-columns:1fr;align-items:start}.modal-layer{padding:10px}.modal{padding:16px}.meter-block{width:72px}.hud-stats{gap:10px}}
+@media(max-width:480px){.game-wrap{aspect-ratio:1/1.1}.topbar{gap:12px}.brand{font-size:20px}.brand svg{width:25px}.balance{white-space:nowrap;flex-shrink:0}.header-actions{flex-shrink:0}}
+
+.audit-metrics{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#061b25eb;color:#bdf6a9;padding:6px;font:10px/1.4 monospace;overflow-wrap:anywhere;pointer-events:none}
+</style>
+</head>
+<body>
+<div class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="#" id="brand" aria-label="Abduction home"><svg viewBox="0 0 36 28" aria-hidden="true"><path d="M9 14a9 9 0 0 1 18 0"/><ellipse cx="18" cy="16" rx="16" ry="6"/><path d="m12 24-2 3m8-3v4m6-4 2 3"/></svg><span>ABDUCTION<span class="brand-dot">®</span></span></a>
+    <div class="top-center"><span class="status-dot"></span> EXTRATERRESTRIAL OPERATIONS DIVISION</div>
+    <div class="header-actions"><span class="balance" id="balance" title="Credits"><span>◈</span> <b>0</b></span><button class="icon-button" id="sound-button" aria-label="Mute sound" title="Sound">♪</button><button class="icon-button" id="settings-button" aria-label="Settings" title="Settings">⚙</button></div>
+  </header>
+  <main>
+    <div class="game-wrap" id="game-wrap">
+      <canvas id="game" tabindex="0" width="1280" height="720" aria-label="Abduction game landscape"></canvas>
+      <div class="scene-vignette" aria-hidden="true"></div>
+      <div class="screen" id="screen"></div>
+      <div class="hud hidden" id="hud">
+        <div class="hud-top"><div class="hud-mission"><span class="eyebrow" id="hud-sector">SECTOR 01</span><strong id="hud-title">A quiet little farm</strong></div><div class="hud-timer"><span>SHIFT ENDS IN</span><strong id="hud-time">01:00</strong></div><button class="icon-button" id="pause-button" aria-label="Pause game">Ⅱ</button></div>
+        <div class="hud-bottom"><div class="hud-stats"><div class="meter-block"><div><span>SHIELD</span><strong id="shield-text">50 / 50</strong></div><div class="meter"><i id="shield-meter"></i></div></div><div class="meter-block beam-meter"><div><span>BEAM LOAD</span><strong id="load-text">0 / 30</strong></div><div class="meter"><i id="load-meter"></i></div></div></div><div class="hud-feedback" id="beam-feedback">HOLD TO COLLECT</div><div class="cargo-count"><span>SPECIMENS</span><strong id="capture-count">00</strong><span class="combo" id="combo">×1</span></div></div>
+        <div class="tutorial-tip" id="tutorial-tip"></div>
+        <div class="touch-controls" id="touch-controls"><div class="touch-stick" id="touch-stick"><i></i></div><button id="touch-beam" aria-label="Hold tractor beam">BEAM</button></div>
+      </div>
+      <div class="modal-layer hidden" id="modal-layer" role="dialog" aria-modal="true" aria-label="Flight menu"></div>
+      <div class="toast hidden" id="toast" role="status"></div>
+    </div>
+    <div class="underbar"><span><i class="status-dot"></i><span id="footer-status">SHIP ONLINE. EARTH UNSUSPECTING.</span></span><span class="underbar-right">SINGLE PLAYER <i>·</i> LOCAL SAVE <i>·</i> <button id="fullscreen-button">FULLSCREEN ↗</button></span></div>
+    <section class="below-game" aria-label="Game controls"><div><span class="eyebrow">YOUR SHIP. THEIR PROBLEM.</span><h2>Everything is up for grabs.</h2></div><div class="control-summary"><div><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / <kbd>↑</kbd></span><small>Move your ship</small></div><div><span class="mouse-symbol">↖ <b>MOUSE</b></span><small>Aim your tractor beam</small></div><div><span><kbd>CLICK</kbd> / <kbd>SPACE</kbd></span><small>Hold to lift. Release to drop.</small></div><div><span><kbd>ESC</kbd></span><small>Pause & take a breath</small></div></div></section>
+  </main>
+  <footer class="page-footer"><span>ABDUCTION <i>/</i> MIDNIGHT HARVEST</span><span>AN EARTH-SIZED OPPORTUNITY.</span></footer>
+</div>
+<script>
+const __modules = {};
+
+__modules["config"] = (() => {
+const WORLD = { width: 2400, height: 720, ground: 610 };
+const MISSIONS = [
+  {id:1,title:'A quiet little farm',subtitle:'01 / GREEN PASTURES',duration:60,population:18,threat:1,theme:'farm',brief:'Your first night on Earth. Collect the locals, make creative use of the rocks, and keep the ship in one piece. Survive the shift or clear the area.',goals:[{key:'captured',target:10,label:'Collect 10 Earth specimens'},{key:'rockKills',target:2,label:'Hit 2 hostiles with dropped cargo'}]},
+  {id:2,title:'Unwelcome company',subtitle:'02 / COUNTY LINE',duration:75,population:24,threat:2,theme:'town',brief:'Word travels fast out here. Armed locals and delivery trucks are joining the party. A carried rock makes surprisingly good cover.',goals:[{key:'captured',target:14,label:'Collect 14 Earth specimens'},{key:'rockKills',target:3,label:'Hit 3 hostiles with dropped cargo'}]},
+  {id:3,title:'The night shift',subtitle:'03 / INDUSTRIAL OUTSKIRTS',duration:90,population:28,threat:3,theme:'industrial',brief:'The agents have arrived. Their plasma turns slowly: change direction, break line of sight, and interrupt the launch before it happens.',goals:[{key:'captured',target:16,label:'Collect 16 Earth specimens'},{key:'planesDown',target:1,label:'Intercept an aircraft with cargo'}]},
+  {id:4,title:'Restricted airspace',subtitle:'04 / SECTOR 51',duration:105,population:32,threat:4,theme:'base',brief:'Nobody is pretending this is a weather balloon anymore. Watch for flight-path warnings and use recovery windows to collect.',goals:[{key:'captured',target:18,label:'Collect 18 Earth specimens'},{key:'rockKills',target:5,label:'Hit 5 hostiles with dropped cargo'}]},
+  {id:5,title:'Return to sender',subtitle:'05 / THE LAST LINE',duration:180,population:16,threat:4,theme:'boss',boss:true,brief:'Meet ATLAS, Earth’s very large complaint department. Lift its spent charges or a rock, carry them over the robot, then release onto the glowing core. Your beam is your weapon.',goals:[{key:'rockKills',target:3,label:'Land 3 cargo impacts'},{key:'captured',target:8,label:'Collect 8 specimens during the battle'}]}
+];
+const UPGRADES = [
+  {id:'suction',name:'Abductor crystal',description:'Pull targets into the ship faster.',prices:[600,1600,3600,6500],icon:'crystal'},
+  {id:'capacity',name:'Beam generator',description:'Carry 10 more load units per level.',prices:[600,1600,3600,6500],icon:'beam'},
+  {id:'armour',name:'Hull plating',description:'Add 10 shield points per level.',prices:[800,2200,4800],icon:'shield'},
+  {id:'engine',name:'Ion drive',description:'Faster flight, tighter handling.',prices:[500,1400,3200,6000],icon:'engine'},
+  {id:'processor',name:'Cargo processor',description:'Earn 20% more per specimen per level.',prices:[1200,3000],icon:'processor'}
+];
+const EMPTY_UPGRADES={suction:0,capacity:0,armour:0,engine:0,processor:0};
+
+return {WORLD,MISSIONS,UPGRADES,EMPTY_UPGRADES};
+})();
+
+__modules["collision"] = (() => {
+// Centered, axis-aligned geometry shared by movement, perception and impacts.
+// A small separation keeps resting contacts stable without opening visible gaps.
+const SKIN = .001;
+function overlaps(a, b) {
+  return Math.abs(a.x-b.x)<(a.w+b.w)/2-SKIN && Math.abs(a.y-b.y)<(a.h+b.h)/2-SKIN;
+}
+
+function rayHit(x,y,dx,dy,minX,maxX,minY,maxY,box){
+  let enter=-Infinity,exit=Infinity,nx=0,ny=0;
+  for(let axis=0;axis<2;axis++){
+    const start=axis?y:x,delta=axis?dy:dx,lo=axis?minY:minX,hi=axis?maxY:maxX;
+    if(Math.abs(delta)<1e-10){if(start<lo||start>hi)return null;continue;}
+    let near=(lo-start)/delta,far=(hi-start)/delta;if(near>far){const temp=near;near=far;far=temp;}
+    if(near>enter){enter=near;nx=axis?0:(delta>0?-1:1);ny=axis?(delta>0?-1:1):0;}
+    exit=Math.min(exit,far);if(enter>exit)return null;
+  }
+  if(enter<-.000001||enter>1||exit<0||dx*nx+dy*ny>=0)return null;
+  return {time:Math.max(0,enter),nx,ny,box};
+}
+function sweepBox(body,dx,dy,box){
+  if(overlaps(body,box))return {time:0,nx:0,ny:0,box};
+  return rayHit(body.x,body.y,dx,dy,box.x-(box.w+body.w)/2,box.x+(box.w+body.w)/2,
+    box.y-(box.h+body.h)/2,box.y+(box.h+body.h)/2,box);
+}
+function segmentHit(x1,y1,x2,y2,box,pad=0){
+  const halfW=Math.max(.005,box.w/2+pad),halfH=Math.max(.005,box.h/2+pad);
+  if(Math.abs(x1-box.x)<=halfW&&Math.abs(y1-box.y)<=halfH)return {time:0,nx:0,ny:0,box};
+  return rayHit(x1,y1,x2-x1,y2-y1,box.x-halfW,box.x+halfW,box.y-halfH,box.y+halfH,box);
+}
+
+function limitsFor(body, options) {
+  const {width=2400,ground=610,allowOutsideX=false,limits={}}=options;
+  return {left:allowOutsideX?-Infinity:body.w/2,right:allowOutsideX?Infinity:width-body.w/2,
+    top:body.h/2,bottom:ground-body.h/2,...limits};
+}
+
+// Spawns and stale contacts may already overlap. Find the nearest free location
+// across the union of solid boxes instead of alternating pushes between walls.
+function escapePenetration(body, solids, options, bounds) {
+  body.x=Math.max(bounds.left,Math.min(bounds.right,body.x));
+  body.y=Math.max(bounds.top,Math.min(bounds.bottom,body.y));
+  if(!solids.some(b=>b.hp>0&&overlaps(body,b)))return false;
+  const originalX=body.x, originalY=body.y, candidates=[];
+  for(const b of solids){
+    if(b.hp<=0)continue;
+    candidates.push({x:b.x-(b.w+body.w)/2-SKIN,y:originalY},{x:b.x+(b.w+body.w)/2+SKIN,y:originalY});
+    if(!options.horizontalOnly)candidates.push({x:originalX,y:b.y-(b.h+body.h)/2-SKIN},{x:originalX,y:b.y+(b.h+body.h)/2+SKIN});
+  }
+  candidates.sort((a,b)=>(a.x-originalX)**2+(a.y-originalY)**2-(b.x-originalX)**2-(b.y-originalY)**2);
+  for(const p of candidates){
+    if(p.x<bounds.left||p.x>bounds.right||p.y<bounds.top||p.y>bounds.bottom)continue;
+    if(solids.some(b=>b.hp>0&&overlaps({x:p.x,y:p.y,w:body.w,h:body.h},b)))continue;
+    body.x=p.x;body.y=p.y;return true;
+  }
+  return false;
+}
+
+function depenetrate(body,solids,options={}){return escapePenetration(body,solids,options,limitsFor(body,options));}
+
+function moveBody(body, dx, dy, solids, options={}) {
+  const bounds=limitsFor(body,options),contacts=[];
+  escapePenetration(body,solids,options,bounds);
+  for(let iteration=0;iteration<4&&(Math.abs(dx)>1e-9||Math.abs(dy)>1e-9);iteration++){
+    let hit=null;
+    for(const b of solids){if(b.hp<=0)continue;const candidate=sweepBox(body,dx,dy,b);if(candidate&&(!hit||candidate.time<hit.time))hit=candidate;}
+    for(let axis=0;axis<2;axis++){
+      const start=axis?body.y:body.x,delta=axis?dy:dx,lo=axis?bounds.top:bounds.left,hi=axis?bounds.bottom:bounds.right;
+      if(!delta)continue;const crossing=delta<0?start+delta<lo:start+delta>hi;
+      if(!crossing)continue;const time=((delta<0?lo:hi)-start)/delta;
+      if(time>=0&&time<=1&&(!hit||time<hit.time))hit={time,nx:axis?0:(delta<0?1:-1),ny:axis?(delta<0?1:-1):0,box:null};
+    }
+    if(!hit){body.x+=dx;body.y+=dy;break;}
+    const separation=hit.box?SKIN:0;
+    body.x+=dx*hit.time+hit.nx*separation;body.y+=dy*hit.time+hit.ny*separation;
+    contacts.push(hit);dx*=1-hit.time;dy*=1-hit.time;
+    if(hit.nx)dx=0;if(hit.ny)dy=0;
+  }
+  body.x=Math.max(bounds.left,Math.min(bounds.right,body.x));body.y=Math.max(bounds.top,Math.min(bounds.bottom,body.y));
+  return contacts;
+}
+
+const FLOOR_SUPPORT={id:null,y:610};
+function supportAt(body, solids, ground=610) {
+  const feet=body.y+body.h/2;
+  if(Math.abs(feet-ground)<.02)return ground===610?FLOOR_SUPPORT:{id:null,y:ground};
+  for(const b of solids)if(b.hp>0&&Math.abs(feet-(b.y-b.h/2))<.02&&Math.abs(body.x-b.x)<(body.w+b.w)/2-SKIN)return {id:b.id,y:b.y-b.h/2};
+  return null;
+}
+
+return {overlaps,sweepBox,segmentHit,depenetrate,moveBody,supportAt};
+})();
+
+__modules["sim"] = (() => {
+const { WORLD, EMPTY_UPGRADES } = __modules["config"];
+const { moveBody, depenetrate, supportAt, sweepBox, segmentHit } = __modules["collision"];
+
+// The entire simulation is independent of the DOM and uses seconds and world units.
+const TAU = Math.PI * 2;
+const BEAM_LIMIT = Math.PI * 40 / 180;
+const GRAVITY = 520;
+const PEOPLE = new Set(['civilian', 'thrower', 'gunner', 'agent', 'cow']);
+const CARGO = new Set(['rock', 'truck', 'bomb']);
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const randomBetween = (game, a, b) => a + game.random() * (b - a);
+const approach = (current, target, speed, dt) => current + (target - current) * (1 - Math.exp(-speed * dt));
+
+function angleDifference(a, b) {
+  return ((a - b + Math.PI) % TAU + TAU) % TAU - Math.PI;
+}
+
+function seededRandom(seed) {
+  let value = seed >>> 0;
+  return () => {
+    value += 0x6D2B79F5;
+    let t = Math.imul(value ^ value >>> 15, 1 | value);
+    t ^= t + Math.imul(t ^ t >>> 7, 61 | t);
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+function event(game, type, details = {}) {
+  game.events.push({ type, ...details });
+  if (game.events.length > 128) game.events.splice(0, game.events.length - 128);
+}
+
+function label(game, x, y, text, color = '#b6ff80') {
+  game.texts.push({ x, y, text, color, life: 1.7 });
+  if (game.texts.length > 24) game.texts.shift();
+}
+
+function burst(game, x, y, color, count = 12, speed = 110) {
+  for (let i = 0; i < count; i++) {
+    const angle = randomBetween(game, 0, TAU);
+    const velocity = randomBetween(game, speed * .25, speed);
+    const life = randomBetween(game, .25, .7);
+    game.particles.push({ x, y, vx: Math.cos(angle) * velocity, vy: Math.sin(angle) * velocity,
+      life, maxLife: life, color, size: randomBetween(game, 2, 5) });
+  }
+  if (game.particles.length > 240) game.particles.splice(0, game.particles.length - 240);
+}
+
+function segmentIntersectsBox(x1,y1,x2,y2,box,pad=0) {
+  return Boolean(segmentHit(x1,y1,x2,y2,box,pad));
+}
+
+function movingHit(x1,y1,x2,y2,box,pad=0) {
+  const px=box.previousX ?? box.x, py=box.previousY ?? box.y;
+  return segmentHit(x1,y1,x2-(box.x-px),y2-(box.y-py),{x:px,y:py,w:box.w,h:box.h},pad);
+}
+
+function hasLineOfSight(game, x1, y1, x2, y2, options = {}) {
+  for (const building of game.buildings) {
+    if (building.hp > 0 && segmentIntersectsBox(x1, y1, x2, y2, building)) return false;
+  }
+  if (options.includeCargo !== false) {
+    for (const entity of game.entities) {
+      if (entity.id !== options.ignoreId && !entity.dead && CARGO.has(entity.kind) &&
+          (entity.physical === 'lifted' || entity.physical === 'airborne') &&
+          segmentIntersectsBox(x1, y1, x2, y2, entity, -3)) return false;
+    }
+  }
+  return true;
+}
+
+const DEFINITIONS = {
+  civilian: { w: 22, h: 34, load: 10, hp: 1, collectible: true, value: 100, speed: 64 },
+  thrower: { w: 24, h: 36, load: 10, hp: 1, collectible: true, value: 125, speed: 46 },
+  gunner: { w: 25, h: 36, load: 10, hp: 1, collectible: true, value: 140, speed: 44 },
+  agent: { w: 25, h: 38, load: 12, hp: 1, collectible: true, value: 175, speed: 68 },
+  cow: { w: 48, h: 34, load: 12, hp: 1, collectible: true, value: 150, speed: 38 },
+  rock: { w: 39, h: 32, load: 18, hp: 6, collectible: false, value: 0, speed: 0 },
+  truck: { w: 102, h: 52, load: 30, hp: 5, collectible: false, value: 0, speed: 95 },
+  plane: { w: 98, h: 34, load: 100, hp: 1, collectible: false, value: 300, speed: 330 },
+  bomb: { w: 28, h: 30, load: 16, hp: 1, collectible: false, value: 0, speed: 0 },
+};
+
+function spawnEntity(game, kind, x, y, extra = {}) {
+  const type = DEFINITIONS[kind];
+  if (!type) throw new Error(`Unknown entity kind: ${kind}`);
+  const entity = {
+    ...type, id: ++game.nextId, kind, x, y: y ?? WORLD.ground - type.h / 2,
+    vx: 0, vy: 0, state: 'idle', physical: 'grounded', carried: false,
+    timer: randomBetween(game, .5, 2.5), thinkTimer: randomBetween(game, 0, .2),
+    direction: game.random() < .5 ? -1 : 1, flash: 0, reacquire: 0,
+    spawnGrace: 1.5, attackProgress: 0, wasCarried: false, ...extra,
+  };
+  if (kind !== 'plane' && !(kind === 'truck' && ['enter','leave'].includes(entity.state))) {
+    depenetrate(entity,game.buildings,{horizontalOnly:entity.physical==='grounded'});
+  }
+  entity.previousX=entity.x;entity.previousY=entity.y;
+  game.entities.push(entity);
+  return entity;
+}
+
+function populationKind(game, index) {
+  if (index % 7 === 4) return 'cow';
+  if (game.mission.threat >= 3 && index % 5 === 3) return 'agent';
+  if (game.mission.threat >= 2 && index % 4 === 2) return 'gunner';
+  if (index % 4 === 3) return 'thrower';
+  return 'civilian';
+}
+
+function spawnPopulation(game, x, y, extra = {}) {
+  if (game.populationReserve <= 0) return null;
+  game.populationReserve--;
+  const kind = populationKind(game, game.populationSpawned++);
+  return spawnEntity(game, kind, x, y, extra);
+}
+
+function getRemainingPopulation(game) {
+  return game.populationReserve + game.entities.reduce((sum, entity) =>
+    sum + (!entity.dead && entity.collectible ? 1 : 0) +
+    (!entity.dead && entity.kind === 'truck' ? entity.passengers || 0 : 0), 0);
+}
+
+function createGame({ mission, upgrades = EMPTY_UPGRADES, difficulty = 'normal', seed = 1234 }) {
+  if (!mission || !Number.isFinite(mission.duration)) throw new Error('A valid mission is required.');
+  const levels = {};
+  for (const key of Object.keys(EMPTY_UPGRADES)) {
+    levels[key] = clamp(Math.floor(Number(upgrades[key]) || 0), 0, key === 'armour' ? 3 : key === 'processor' ? 2 : 4);
+  }
+  const challenge = difficulty === 'easy' ? .75 : difficulty === 'hard' ? 1.25 : 1;
+  const game = {
+    time: 0, remaining: mission.duration, status: 'playing', mission, upgrades: levels,
+    difficulty, challenge, random: seededRandom(seed), seed, nextId: 0,
+    camera: 0, entities: [], projectiles: [], particles: [], texts: [], events: [],
+    populationReserve: mission.population, populationSpawned: 0,
+    beamFeedback: 'HOLD TO COLLECT', comboTimer: 0, shake: 0,
+    ufo: { x: 420, y: 305, w: 70, h: 42, vx: 0, vy: 0, hp: 50 + levels.armour * 10,
+      maxHp: 50 + levels.armour * 10, angle: 0, beamAngle: 0, beamOn: false,
+      load: 0, capacity: 30 + levels.capacity * 10, invulnerable: 0 },
+    stats: { captured: 0, destroyed: 0, rockKills: 0, planesDown: 0, combo: 1,
+      maxCombo: 1, credits: 0, bossHits: 0, damageTaken: 0 },
+    director: { phase: 'introduce', phaseTimer: 0, warning: 0, warningSide: 'left',
+      warningY: 240, nextPlane: mission.id === 1 ? 31 : 19, nextTruck: 13,
+      relief: 0, attackCooldown: 0, maxAttacks: 2, threat: 0 },
+    buildings: [], boss: null,
+  };
+  const placements = mission.boss ? [[810, 140, 115], [1280, 150, 150]] :
+    [[850, 140, 120], [1460, 175, 155], [2185, 150, 115]];
+  for (const [x, w, h] of placements) {
+    game.buildings.push({ id: ++game.nextId, x, y: WORLD.ground - h / 2,
+      w, h, hp: 3, maxHp: 3, shelter: true, flash: 0, kind: mission.theme });
+  }
+  const initialCount = Math.min(mission.population - 4, mission.boss ? 10 : 15);
+  const spots = [390, 465, 300, 620, 180, 1015, 1120, 1280, 1660, 1775, 1920, 2050, 70, 2300, 530];
+  for (let i = 0; i < initialCount; i++) spawnPopulation(game, spots[i % spots.length] + randomBetween(game, -18, 18));
+  for (const x of [555, 1070, 1715, 2020]) spawnEntity(game, 'rock', x);
+  if (mission.boss) {
+    game.boss = { x: 1940, y: 440, w: 190, h: 340, hp: 180, maxHp: 180,
+      coreX: 1940, coreY: 385, coreRadius: 46, phase: 1, phaseTransitions: 0,
+      state: 'intro', timer: 4, vulnerable: false, flash: 0, telegraphX: 420,
+      volleyCount: 0, nextShot: 0 };
+    label(game, 490, 220, 'LIFT CARGO. DROP IT ON THE GLOWING CORE.', '#f5c465');
+  }
+  return game;
+}
+
+function updateUfo(game, input, dt) {
+  const ufo = game.ufo;
+  const speed = 290 + game.upgrades.engine * 43;
+  let moveX = clamp(Number(input.moveX) || 0, -1, 1);
+  let moveY = clamp(Number(input.moveY) || 0, -1, 1);
+  const magnitude = Math.hypot(moveX, moveY);
+  if (magnitude > 1) { moveX /= magnitude; moveY /= magnitude; }
+  const responsiveness = 7.5 + game.upgrades.engine * .5;
+  ufo.vx = approach(ufo.vx, moveX * speed, moveX ? responsiveness : 6.4, dt);
+  ufo.vy = approach(ufo.vy, moveY * speed, moveY ? responsiveness : 6.4, dt);
+  ufo.previousX=ufo.x;ufo.previousY=ufo.y;
+  const contacts=moveBody(ufo,ufo.vx*dt,ufo.vy*dt,game.buildings,
+    {limits:{left:48,right:WORLD.width-48,top:74,bottom:WORLD.ground-70}});
+  for(const contact of contacts){if(contact.nx)ufo.vx=0;if(contact.ny)ufo.vy=0;}
+  ufo.angle = approach(ufo.angle, clamp(ufo.vx / speed * .17, -.17, .17), 9, dt);
+  if (Number.isFinite(input.aimX) && Number.isFinite(input.aimY)) {
+    const desired = clamp(Math.atan2(input.aimX - ufo.x, Math.max(1, input.aimY - ufo.y)), -BEAM_LIMIT, BEAM_LIMIT);
+    ufo.beamAngle = approach(ufo.beamAngle, desired, 10.5, dt);
+  }
+  ufo.invulnerable = Math.max(0, ufo.invulnerable - dt);
+  const viewportWidth = clamp(game.viewportWidth || 1280, 480, WORLD.width);
+  game.camera = approach(game.camera, clamp(ufo.x - viewportWidth / 2, 0, WORLD.width - viewportWidth), 5, dt);
+}
+
+function cancelAttack(entity) {
+  entity.attackProgress = 0;
+  entity.aimLocked = false;
+  entity.attackReleased = false;
+  entity.aimX = undefined;
+  entity.aimY = undefined;
+}
+
+function releaseLoad(game) {
+  let released = 0;
+  for (const entity of game.entities) {
+    if (entity.dead || entity.physical !== 'lifted') continue;
+    entity.physical = 'airborne';
+    entity.state = 'falling';
+    entity.carried = false;
+    entity.wasCarried = true;
+    entity.reacquire = .32;
+    entity.vx = game.ufo.vx * .82;
+    entity.vy = Math.max(75, game.ufo.vy * .5 + 65);
+    entity.harmful = false;
+    entity.impactGrace = .18;
+    entity.timer = 0;
+    cancelAttack(entity);
+    released++;
+  }
+  game.ufo.load = 0;
+  if (released) event(game, 'throw', { x: game.ufo.x, y: game.ufo.y, count: released });
+  return released;
+}
+
+function updateBeam(game, input, dt) {
+  const ufo = game.ufo;
+  ufo.beamOn = Boolean(input.beam) && ufo.invulnerable < 1.05;
+  if (!ufo.beamOn) {
+    releaseLoad(game);
+    game.beamFeedback = ufo.invulnerable >= 1.05 ? 'BEAM INTERRUPTED' : 'HOLD TO COLLECT';
+    return;
+  }
+  let load = game.entities.reduce((sum, entity) => sum + (!entity.dead && entity.physical === 'lifted' ? entity.load : 0), 0);
+  const sx = Math.sin(ufo.beamAngle);
+  const sy = Math.cos(ufo.beamAngle);
+  let full = false;
+  let blocked = false;
+  const candidates = game.entities.filter(entity => !entity.dead && entity.kind !== 'plane' && entity.physical !== 'lifted' && entity.state !== 'sheltered')
+    .sort((a, b) => distance(ufo, a) - distance(ufo, b));
+  for (const entity of candidates) {
+    const dx = entity.x - ufo.x;
+    const dy = entity.y - (ufo.y + 12);
+    const along = dx * sx + dy * sy;
+    const across = Math.abs(dx * sy - dy * sx);
+    if (along < 18 || along > 450 || across > 19 + along * .068 + entity.w * .25 || entity.reacquire > 0) continue;
+    if (entity.kind === 'truck' && Math.abs(entity.vx) > 40 && entity.physical === 'grounded') continue;
+    if (!hasLineOfSight(game, ufo.x, ufo.y + 12, entity.x, entity.y, { ignoreId: entity.id })) {
+      blocked = true;
+      continue;
+    }
+    if (load + entity.load > ufo.capacity) { full = true; continue; }
+    entity.physical = 'lifted';
+    entity.state = 'lifted';
+    entity.carried = false;
+    entity.wasCarried = true;
+    entity.harmful = false;
+    entity.vx *= .15;
+    entity.vy = 0;
+    entity.timer = 0;
+    entity.shelterId = null;
+    cancelAttack(entity);
+    load += entity.load;
+    if (entity.kind === 'truck' && entity.passengers) unloadTruck(game, entity, true);
+  }
+  ufo.load = load;
+  game.beamFeedback = full ? 'BEAM AT CAPACITY' : blocked ? 'PATH BLOCKED · CHANGE ANGLE' :
+    load ? 'RELEASE TO DROP CARGO' : 'SEARCHING FOR CARGO';
+}
+
+function addCombo(game) {
+  game.stats.streak = (game.stats.streak || 0) + 1;
+  game.stats.combo = Math.min(10, 1 + Math.floor(game.stats.streak / 3) * .5);
+  game.stats.maxCombo = Math.max(game.stats.maxCombo, game.stats.combo);
+  game.comboTimer = 7;
+}
+
+function capture(game, entity) {
+  if (entity.dead) return;
+  entity.dead = true;
+  entity.physical = 'captured';
+  game.stats.captured++;
+  addCombo(game);
+  const credits = Math.round(entity.value * game.stats.combo * (1 + game.upgrades.processor * .2));
+  game.stats.credits += credits;
+  label(game, game.ufo.x + randomBetween(game, -25, 25), game.ufo.y - 45, `+$${credits}`);
+  burst(game, entity.x, entity.y, '#b8ff80', 9, 75);
+  event(game, 'capture', { kind: entity.kind, x: entity.x, y: entity.y, credits });
+}
+
+function updateLifted(game, entity, dt, slot) {
+  const ufo = game.ufo;
+  const suction = 1 + game.upgrades.suction * .28;
+  let tx;
+  let ty;
+  if (entity.collectible) {
+    tx = ufo.x;
+    ty = ufo.y + 9;
+  } else {
+    const separation = 73 + slot * 25 + entity.h * .25;
+    tx = ufo.x + Math.sin(ufo.beamAngle) * separation;
+    ty = ufo.y + 12 + Math.cos(ufo.beamAngle) * separation;
+  }
+  const dx = tx - entity.x;
+  const dy = ty - entity.y;
+  const gap = Math.hypot(dx, dy);
+  const pull = (entity.collectible ? 180 : entity.kind === 'truck' ? 125 : 155) * suction;
+  // Cargo follows once suspended; uncollected targets still take time to extract.
+  const maxStep = (pull + (entity.carried ? Math.hypot(ufo.vx, ufo.vy) : 0)) * dt;
+  if (gap > 0) {
+    entity.vx = dx / gap * Math.min(pull, gap / dt);
+    entity.vy = dy / gap * Math.min(pull, gap / dt);
+    const contacts=moveBody(entity,dx/gap*Math.min(gap,maxStep),dy/gap*Math.min(gap,maxStep),game.buildings);
+    if(contacts.length)game.beamFeedback='CARGO BLOCKED · CHANGE POSITION';
+  }
+  entity.carried = !entity.collectible && gap < 25;
+  entity.rotation = (entity.rotation || 0) + dt * (entity.collectible ? 1.4 : .3);
+  if (entity.collectible && distance(entity, { x: ufo.x, y: ufo.y + 9 }) < 23) capture(game, entity);
+}
+
+function damageUfo(game, amount = 10, source = 'projectile') {
+  const ufo = game.ufo;
+  if (game.status !== 'playing' || ufo.invulnerable > 0 || !Number.isFinite(amount) || amount <= 0) return false;
+  const damage = Math.round(amount * game.challenge);
+  ufo.hp = Math.max(0, ufo.hp - damage);
+  ufo.invulnerable = 1.5;
+  game.director.relief = 2.8;
+  game.stats.damageTaken += damage;
+  game.stats.combo = 1;
+  game.stats.streak = 0;
+  game.comboTimer = 0;
+  game.shake = .35;
+  releaseLoad(game);
+  burst(game, ufo.x, ufo.y, '#ff9c70', 18, 160);
+  label(game, ufo.x, ufo.y - 35, `−${damage} SHIELD`, '#ff9c86');
+  event(game, 'hit', { x: ufo.x, y: ufo.y, damage, source });
+  if (ufo.hp <= 0) finishGame(game, false);
+  return true;
+}
+
+function destroyCharacter(game, entity, cargo) {
+  if (entity.dead) return;
+  entity.dead = true;
+  entity.physical = 'dead';
+  cancelAttack(entity);
+  game.stats.destroyed++;
+  if (cargo) game.stats.rockKills++;
+  addCombo(game);
+  const credits = Math.round(45 * game.stats.combo);
+  game.stats.credits += credits;
+  burst(game, entity.x, entity.y - 7, '#fac275', 12, 100);
+  label(game, entity.x, entity.y - 30, cargo ? 'CARGO HIT +$' + credits : '+$' + credits, '#f8cf8d');
+  event(game, 'explosion', { x: entity.x, y: entity.y, small: true });
+}
+
+function damageBuilding(game, building, amount = 1) {
+  if (building.hp <= 0) return;
+  building.hp = Math.max(0, building.hp - amount);
+  building.flash = .3;
+  burst(game, building.x, building.y - building.h / 2, '#a4ad91', 18, 155);
+  if (building.hp <= 0) {
+    label(game, building.x, building.y - building.h / 2 - 18, 'SHELTER OPEN', '#fac275');
+    for (const person of game.entities) {
+      if (person.shelterId === building.id) {
+        person.shelterId = null;
+        person.state = 'flee';
+        person.timer = .75;
+        person.vx = 0;
+        person.spawnGrace = .8;
+      }
+    }
+    event(game, 'explosion', { x: building.x, y: building.y });
+  }
+}
+
+function unloadTruck(game, truck, airborne = false) {
+  const count = truck.passengers || 0;
+  truck.passengers = 0;
+  for (let i = 0; i < count; i++) {
+    const kind = populationKind(game, game.populationSpawned++);
+    const person = spawnEntity(game, kind, clamp(truck.x + (i - (count - 1) / 2) * 25, 25, WORLD.width - 25),
+      airborne ? truck.y : undefined, { spawnGrace: 2.6, state: airborne ? 'falling' : 'alert', timer: 1.1 });
+    if (airborne) {
+      person.physical = 'airborne';
+      person.vx = randomBetween(game, -60, 60);
+      person.vy = -70;
+      person.safeLanding = true;
+    }
+  }
+}
+
+function destroyCargo(game, entity, impact = false) {
+  if (entity.dead) return;
+  if (entity.kind === 'truck') unloadTruck(game, entity, true);
+  entity.dead = true;
+  entity.physical = 'dead';
+  burst(game, entity.x, entity.y, entity.kind === 'bomb' ? '#c2ff84' : '#ffbc72', 20, 185);
+  event(game, 'explosion', { x: entity.x, y: entity.y });
+  if (entity.kind === 'bomb' && impact) {
+    for (const target of game.entities) {
+      if (target !== entity && !target.dead && target.collectible && distance(target, entity) < 90) destroyCharacter(game, target, true);
+    }
+    for (const building of game.buildings) {
+      if (building.hp > 0 && Math.abs(building.x - entity.x) < building.w / 2 + 65 &&
+          Math.abs(building.y - entity.y) < building.h / 2 + 65) damageBuilding(game, building, 2);
+    }
+  }
+}
+
+function bossCargoImpact(game, entity, previousX, previousY) {
+  const boss = game.boss;
+  if (!boss || boss.hp <= 0 || !entity.wasCarried || entity.vy < 70 || entity.bossCooldown > 0) return false;
+  const hit=sweepBox({x:previousX,y:previousY,w:entity.w,h:entity.h},entity.x-previousX,entity.y-previousY,
+    {x:boss.coreX,y:boss.coreY,w:boss.coreRadius*2,h:70});
+  if(!hit)return false;
+  if (!boss.vulnerable) {
+    entity.vy = -140;
+    entity.vx = entity.x < boss.x ? -170 : 170;
+    entity.bossCooldown = .7;
+    entity.y = boss.coreY - 35 - entity.h/2 - .01;
+    label(game, boss.x, boss.y - 165, 'ARMOURED · WAIT FOR THE GLOW', '#e0bd80');
+    return true;
+  }
+  const damage = entity.kind === 'bomb' ? 36 : entity.kind === 'truck' ? 48 : 26;
+  boss.hp = Math.max(0, boss.hp - damage);
+  boss.flash = .6;
+  game.stats.bossHits++;
+  game.stats.rockKills++;
+  game.stats.credits += 150;
+  game.shake = .25;
+  burst(game, boss.coreX, boss.coreY, '#caff8b', 26, 220);
+  label(game, boss.x, boss.y - 180, `CORE HIT −${damage}`, '#d7ffa0');
+  destroyCargo(game, entity, entity.kind === 'bomb');
+  if (boss.hp <= 0) {
+    burst(game, boss.x, boss.y, '#ffda80', 70, 330);
+    event(game, 'explosion', { x: boss.x, y: boss.y, boss: true });
+    finishGame(game, true);
+  }
+  return true;
+}
+
+function updateAirborne(game, entity, dt) {
+  const previousX=entity.x,previousY=entity.y;
+  entity.vy+=GRAVITY*dt;
+  const impactVx=entity.vx,impactVy=entity.vy;
+  const contacts=moveBody(entity,entity.vx*dt,entity.vy*dt,game.buildings);
+  entity.rotation=(entity.rotation||0)+impactVx*dt*.008;
+  if(CARGO.has(entity.kind)){
+    if(bossCargoImpact(game,entity,previousX,previousY)&&entity.dead)return;
+    if(entity.harmful&&entity.impactGrace<=0&&movingHit(previousX,previousY,entity.x,entity.y,game.ufo,entity.w/2)){
+      damageUfo(game,10,'boss charge');destroyCargo(game,entity);return;
+    }
+    if(entity.wasCarried&&impactVy>140){
+      for(const target of game.entities){
+        if(target===entity||target.dead||!target.collectible||target.physical==='lifted'||target.state==='sheltered')continue;
+        const hit=sweepBox({x:previousX,y:previousY,w:entity.w,h:entity.h},entity.x-previousX,entity.y-previousY,target);
+        if(hit)destroyCharacter(game,target,true);
+      }
+    }
+    for(const contact of contacts){
+      if(!contact.box||!entity.wasCarried||Math.hypot(impactVx,impactVy)<120||entity.impactGrace>0)continue;
+      damageBuilding(game,contact.box,entity.kind==='truck'?3:entity.kind==='bomb'?2:1);
+      if(entity.kind==='bomb'){destroyCargo(game,entity,true);return;}
+      entity.impactGrace=.4;
+    }
+  }
+  const floor=contacts.find(c=>c.ny<0);
+  for(const contact of contacts){if(contact.nx)entity.vx=-impactVx*.3;if(contact.ny>0)entity.vy=Math.max(0,entity.vy);}
+  if(!floor)return;
+  entity.vy=0;entity.harmful=false;
+  if(entity.collectible){
+    if(impactVy>570&&!entity.safeLanding){destroyCharacter(game,entity,false);return;}
+    entity.physical='stunned';entity.state='recover';entity.timer=.8+Math.min(1,impactVy/550);
+    entity.vx*=.25;entity.safeLanding=false;
+  }else if(entity.kind==='bomb'&&entity.wasCarried&&impactVy>250){destroyCargo(game,entity,true);}
+  else{
+    entity.physical='grounded';entity.state=entity.kind==='truck'?'stopped':'idle';entity.vx=0;
+    if(impactVy>250)burst(game,entity.x,entity.y+entity.h/2,'#c1c8a0',8,80);
+    if(entity.kind==='bomb'){entity.fuse=18;label(game,entity.x,entity.y-30,'LIFT & RETURN','#c5ff90');}
+  }
+}
+
+function nearbyFallingThreat(game, entity) {
+  for (const cargo of game.entities) {
+    if (cargo.dead || !CARGO.has(cargo.kind) || cargo.physical !== 'airborne' ||
+        cargo.vy < 80 || cargo.y >= entity.y - 40) continue;
+    const vertical = entity.y - cargo.y;
+    const landingTime = (-cargo.vy + Math.sqrt(cargo.vy * cargo.vy + 2 * GRAVITY * vertical)) / GRAVITY;
+    const landingX = cargo.x + cargo.vx * landingTime;
+    if (landingTime > .3 && landingTime < 1.15 && Math.abs(landingX - entity.x) < 55 + cargo.w / 2) return landingX;
+  }
+  return null;
+}
+
+function shelterEntrance(entity, building) {
+  const side=entity.x<building.x?-1:1;
+  return {x:building.x+side*((building.w+entity.w)/2+.02),side};
+}
+
+function canWalkTo(game,entity,x,ignoredId=null) {
+  return !game.buildings.some(b=>b.hp>0&&b.id!==ignoredId&&
+    sweepBox(entity,x-entity.x,0,b));
+}
+
+function updateCivilian(game, entity, dt) {
+  const ufo=game.ufo;entity.timer-=dt;
+  const visible=Math.abs(entity.x-ufo.x)<430&&distance(entity,ufo)<560&&
+    hasLineOfSight(game,entity.x,entity.y-entity.h/2,ufo.x,ufo.y);
+  if(entity.state==='sheltered'){
+    entity.vx=0;
+    const shelter=game.buildings.find(b=>b.id===entity.shelterId&&b.hp>0);
+    if(!shelter||entity.timer<=0){
+      entity.shelterId=null;entity.state='flee';entity.timer=2;entity.shelterCooldown=7;
+      entity.direction=entity.entranceSide||(entity.x<ufo.x?-1:1);
+    }
+    return;
+  }
+  if(visible&&(entity.state==='idle'||entity.state==='walk')){
+    entity.state='alert';entity.timer=randomBetween(game,.35,.7);entity.vx=0;
+  }
+  if(entity.state==='alert'&&entity.timer<=0){
+    entity.state='flee';entity.timer=1.8;entity.direction=entity.x<ufo.x?-1:1;
+    const shelters=game.buildings.filter(b=>b.hp>0&&b.shelter&&Math.abs(b.x-entity.x)<500&&
+      entity.shelterCooldown<=0&&canWalkTo(game,entity,shelterEntrance(entity,b).x,b.id));
+    shelters.sort((a,b)=>Math.abs(a.x-entity.x)-Math.abs(b.x-entity.x));
+    entity.shelterId=shelters[0]?.id??null;
+  }
+  if(entity.state==='flee'){
+    const shelter=game.buildings.find(b=>b.id===entity.shelterId&&b.hp>0);
+    const entrance=shelter?shelterEntrance(entity,shelter):null;
+    if(shelter&&canWalkTo(game,entity,entrance.x,shelter.id)){
+      entity.direction=entrance.x>entity.x?1:-1;
+      if(Math.abs(entrance.x-entity.x)<3){
+        entity.state='sheltered';entity.timer=randomBetween(game,5,8);entity.vx=0;entity.entranceSide=entrance.side;return;
+      }
+    }else{
+      if(entity.shelterId){entity.shelterId=null;entity.shelterCooldown=2;entity.direction=entity.x<ufo.x?-1:1;entity.timer=1.8;}
+      if(entity.timer<=0){
+        if(!visible){entity.state='idle';entity.timer=randomBetween(game,1,3);}
+        else{entity.direction=entity.x<ufo.x?-1:1;entity.timer=1.8;}
+      }
+    }
+    entity.vx=entity.direction*entity.speed*(entity.kind==='cow'?1.15:1.5);
+    if(entrance&&entity.shelterId)entity.vx=Math.sign(entity.vx)*Math.min(Math.abs(entity.vx),Math.abs(entrance.x-entity.x)/dt);
+  }else if(entity.state==='idle'&&entity.timer<=0){
+    entity.state='walk';entity.direction=game.random()<.5?-1:1;entity.timer=randomBetween(game,1.2,2.8);
+  }else if(entity.state==='walk'){
+    entity.vx=entity.direction*entity.speed*.5;
+    if(entity.timer<=0){entity.state='idle';entity.timer=randomBetween(game,.8,2);entity.vx=0;}
+  }else if(entity.state!=='flee')entity.vx=0;
+  moveGroundEntity(game,entity,dt);
+}
+
+function moveGroundEntity(game, entity, dt) {
+  const contacts=moveBody(entity,entity.vx*dt,0,game.buildings,{horizontalOnly:true});
+  if(contacts.some(c=>c.nx)){
+    entity.vx=0;entity.direction=contacts.find(c=>c.nx).nx;entity.timer=Math.max(entity.timer,.5);
+    if(entity.kind==='agent'){entity.state='patrol';entity.memory=0;entity.timer=.7;entity.blockedUntil=game.time+.8;}
+    if(entity.shelterId){entity.shelterId=null;entity.shelterCooldown=2;}
+  }
+}
+
+function attackAllowed(game, entity) {
+  const director = game.director;
+  if (director.relief > 0 || director.phase === 'introduce' || director.phase === 'recovery' ||
+      director.attackCooldown > 0 || entity.spawnGrace > 0) return false;
+  const preparing = game.entities.filter(other => !other.dead && other !== entity &&
+    (other.state === 'aim' || other.state === 'committed'));
+  const active = game.projectiles.filter(projectile => !projectile.dead);
+  if (preparing.length >= director.maxAttacks || active.length + preparing.length >= director.maxAttacks + 2) return false;
+  if (director.warning > 0 && (entity.kind === 'agent' || preparing.length > 0)) return false;
+  if (game.boss && ['charge', 'volley'].includes(game.boss.state) && entity.kind === 'agent') return false;
+  if (entity.kind === 'agent' && (preparing.some(other => other.kind === 'agent') ||
+      active.some(projectile => projectile.kind === 'plasma' && projectile.tracking > 0))) return false;
+  return true;
+}
+
+function aimAtUfo(game, entity) {
+  const prediction = entity.kind === 'agent' ? .28 : 0;
+  entity.aimX = clamp(game.ufo.x + game.ufo.vx * prediction, 35, WORLD.width - 35);
+  entity.aimY = clamp(game.ufo.y + game.ufo.vy * prediction, 65, WORLD.ground - 60);
+}
+
+function fire(game, entity) {
+  if (entity.attackReleased || entity.physical !== 'grounded' || entity.dead) return;
+  entity.attackReleased = true;
+  const x = entity.x;
+  const y = entity.y - entity.h / 2;
+  const dx = entity.aimX - x;
+  const dy = entity.aimY - y;
+  let projectile;
+  if (entity.kind === 'thrower') {
+    const travel = clamp(Math.hypot(dx, dy) / 400, .7, 1.35);
+    projectile = { x, y, vx: dx / travel, vy: (dy - .5 * 390 * travel * travel) / travel,
+      gravity: 390, kind: 'arc', life: 3.3, radius: 8, damage: 10, rotation: 0 };
+  } else {
+    const speed = entity.kind === 'agent' ? 190 : 340;
+    const spread = entity.kind === 'agent' ? .025 : .045;
+    const angle = Math.atan2(dy, dx) + randomBetween(game, -spread, spread);
+    projectile = { x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+      kind: entity.kind === 'agent' ? 'plasma' : 'bullet', life: entity.kind === 'agent' ? 5 : 3,
+      radius: entity.kind === 'agent' ? 8 : 4, damage: 10,
+      tracking: entity.kind === 'agent' ? 1.8 : 0, turnRate: 1.35, speed };
+  }
+  projectile.owner = entity.id;
+  game.projectiles.push(projectile);
+  if (game.projectiles.length > 64) game.projectiles.shift();
+  event(game, 'shot', { x, y, kind: projectile.kind });
+}
+
+function updateDefender(game, entity, dt) {
+  const ufo = game.ufo;
+  entity.timer -= dt;
+  const range = entity.kind === 'agent' ? 680 : entity.kind === 'gunner' ? 590 : 490;
+  const visible = distance(entity, ufo) < range && hasLineOfSight(game, entity.x, entity.y - entity.h / 2, ufo.x, ufo.y);
+  if (visible) {
+    entity.lastSeenX = ufo.x;
+    entity.lastSeenY = ufo.y;
+    entity.memory = 2.2;
+  } else entity.memory = Math.max(0, (entity.memory || 0) - dt);
+  if (entity.state === 'aim' || entity.state === 'committed') {
+    entity.vx = 0;
+    if (entity.state === 'aim') {
+      if (!visible) {
+        entity.state = 'recover';
+        entity.timer = .45;
+        cancelAttack(entity);
+        return;
+      }
+      aimAtUfo(game, entity);
+      entity.attackProgress = clamp(1 - entity.timer / entity.prepareDuration, 0, .8);
+      if (entity.timer <= 0) {
+        entity.state = 'committed';
+        entity.timer = entity.kind === 'agent' ? .28 : .22;
+        entity.aimLocked = true;
+        entity.attackProgress = .9;
+      }
+    } else if (entity.timer <= 0) {
+      fire(game, entity);
+      entity.state = 'recover';
+      entity.timer = randomBetween(game, 1.4, 2.1) / game.challenge;
+      entity.attackProgress = 0;
+    }
+    return;
+  }
+  if (entity.state === 'recover') {
+    entity.vx = 0;
+    if (entity.timer <= 0) { entity.state = 'patrol'; entity.timer = randomBetween(game, .35, .8); }
+    return;
+  }
+  if (entity.state === 'dodge') {
+    entity.vx = entity.direction * entity.speed * 1.75;
+    moveGroundEntity(game, entity, dt);
+    if (entity.timer <= 0) { entity.state = 'patrol'; entity.timer = .4; }
+    return;
+  }
+  if (entity.thinkTimer <= 0) {
+    entity.thinkTimer = randomBetween(game, .16, .28);
+    const dangerX = nearbyFallingThreat(game, entity);
+    if (dangerX !== null && game.random() < (entity.kind === 'agent' ? .8 : .48)) {
+      entity.state = 'dodge';
+      entity.direction = entity.x < dangerX ? -1 : 1;
+      entity.timer = .55;
+      return;
+    }
+    if (visible && entity.timer <= 0 && attackAllowed(game, entity)) {
+      entity.state = 'aim';
+      entity.prepareDuration = randomBetween(game, .65, 1) / Math.sqrt(game.challenge);
+      entity.timer = entity.prepareDuration;
+      entity.attackReleased = false;
+      entity.aimLocked = false;
+      entity.attackProgress = 0;
+      entity.direction = ufo.x < entity.x ? -1 : 1;
+      aimAtUfo(game, entity);
+      game.director.attackCooldown = .48 / game.challenge;
+      entity.vx = 0;
+      return;
+    }
+  }
+  if (entity.state === 'idle' || entity.state === 'alert') entity.state = 'patrol';
+  if (visible && entity.kind === 'gunner') entity.vx = 0;
+  else if (entity.kind === 'agent' && entity.memory > 0 && (entity.blockedUntil||0)<=game.time) {
+    // Agents reposition based on their last sighting, not hidden live coordinates.
+    const separation = entity.lastSeenX - entity.x;
+    entity.direction = separation > 0 ? 1 : -1;
+    if (Math.abs(separation) < 150) entity.direction *= -1;
+    entity.vx = entity.direction * entity.speed * .65;
+  } else {
+    if (entity.timer <= -2) { entity.direction *= -1; entity.timer = randomBetween(game, .3, 1.1); }
+    entity.vx = entity.direction * entity.speed * .5;
+  }
+  moveGroundEntity(game, entity, dt);
+}
+
+function updateTruck(game, entity, dt) {
+  if(entity.state==='enter'||entity.state==='leave'){
+    entity.vx=entity.direction*(entity.state==='leave'?125:95);
+    const contacts=moveBody(entity,entity.vx*dt,0,game.buildings,{allowOutsideX:true});
+    const blocked=contacts.some(c=>c.nx);
+    if(entity.state==='enter'&&(blocked||Math.abs(entity.x-entity.dropX)<15)){
+      entity.state='stopped';entity.vx=0;entity.timer=4.5;entity.unloadTimer=1.3;
+      if(blocked)entity.direction*=-1;
+    }else if(entity.state==='leave'&&blocked)entity.direction*=-1;
+    if(entity.state==='leave'&&(entity.x < -150||entity.x>WORLD.width+150))entity.dead=true;
+  }else if(entity.state==='stopped'){
+    entity.vx=0;entity.timer-=dt;
+    if(entity.passengers){entity.unloadTimer-=dt;if(entity.unloadTimer<=0)unloadTruck(game,entity);}
+    if(entity.timer<=0&&!entity.wasCarried)entity.state='leave';
+  }
+}
+
+function movingBodyHit(body,previousX,previousY,target) {
+  const px=target.previousX??target.x,py=target.previousY??target.y;
+  return sweepBox({x:previousX,y:previousY,w:body.w,h:body.h},
+    body.x-previousX-(target.x-px),body.y-previousY-(target.y-py),{x:px,y:py,w:target.w,h:target.h});
+}
+
+function updatePlane(game, entity, dt) {
+  const startX=entity.x,startY=entity.y;
+  entity.x += entity.vx * dt;
+  entity.y += Math.sin(game.time * 2 + entity.id) * dt * 3;
+  for (const cargo of game.entities) {
+    if (cargo === entity || cargo.dead || !CARGO.has(cargo.kind) || cargo.physical === 'grounded') continue;
+    if (movingBodyHit(entity,startX,startY,cargo)) {
+      entity.dead = true;
+      game.stats.planesDown++;
+      game.stats.credits += 300;
+      label(game, entity.x, entity.y - 35, 'INTERCEPTED +$300', '#d0ff97');
+      burst(game, entity.x, entity.y, '#ffb97b', 28, 210);
+      cargo.hp--;
+      if (cargo.hp <= 0) destroyCargo(game, cargo);
+      event(game, 'explosion', { x: entity.x, y: entity.y });
+      return;
+    }
+  }
+  if (movingBodyHit(entity,startX,startY,game.ufo)) {
+    damageUfo(game, 15, 'aircraft');
+    entity.dead = true;
+    burst(game, entity.x, entity.y, '#ffba7d', 18, 190);
+  }
+  if (entity.x < -200 || entity.x > WORLD.width + 200) entity.dead = true;
+}
+
+function updateEntities(game, dt) {
+  let cargoSlot = 0;
+  // Copy the array so unloaded passengers begin updating on the next tick.
+  const count=game.entities.length;
+  for(let index=0;index<count;index++){const entity=game.entities[index];entity.previousX=entity.x;entity.previousY=entity.y;}
+  for (let index=0;index<count;index++) {
+    const entity=game.entities[index];
+    if(game.status!=='playing')break;
+    if (entity.dead) continue;
+    entity.flash = Math.max(0, entity.flash - dt);
+    entity.reacquire = Math.max(0, entity.reacquire - dt);
+    entity.spawnGrace = Math.max(0, entity.spawnGrace - dt);
+    entity.impactGrace = Math.max(0, (entity.impactGrace || 0) - dt);
+    entity.bossCooldown = Math.max(0,(entity.bossCooldown||0)-dt);
+    entity.shelterCooldown = Math.max(0, (entity.shelterCooldown || 0) - dt);
+    entity.thinkTimer -= dt;
+    if (entity.physical === 'lifted') {
+      cancelAttack(entity);
+      updateLifted(game, entity, dt, entity.collectible ? 0 : cargoSlot++);
+      continue;
+    }
+    if (entity.physical === 'airborne') { updateAirborne(game, entity, dt); continue; }
+    if(entity.kind!=='plane'&&entity.state!=='sheltered'&&!supportAt(entity,game.buildings)){
+      entity.physical='airborne';entity.state='falling';cancelAttack(entity);
+      updateAirborne(game,entity,dt);continue;
+    }
+    if (entity.physical === 'stunned') {
+      entity.timer -= dt;
+      entity.vx = approach(entity.vx, 0, 10, dt);
+      moveBody(entity,entity.vx*dt,0,game.buildings);
+      if (entity.timer <= 0) {
+        entity.physical = 'grounded';
+        entity.state = 'idle';
+        entity.timer = .65;
+        entity.spawnGrace = .6;
+      }
+      continue;
+    }
+    if (entity.kind === 'civilian' || entity.kind === 'cow') updateCivilian(game, entity, dt);
+    else if (entity.kind === 'thrower' || entity.kind === 'gunner' || entity.kind === 'agent') updateDefender(game, entity, dt);
+    else if (entity.kind === 'truck') updateTruck(game, entity, dt);
+    else if (entity.kind === 'plane') updatePlane(game, entity, dt);
+    else if (entity.kind === 'bomb' && entity.fuse > 0) {
+      entity.fuse -= dt;
+      if (entity.fuse <= 0) destroyCargo(game, entity);
+    }
+  }
+}
+
+function updateProjectiles(game, dt) {
+  for (const projectile of game.projectiles) {
+    if(projectile.dead)continue;
+    if(game.status!=='playing')break;
+    const previousX=projectile.x,previousY=projectile.y;
+    const travel=Math.min(dt,Math.max(0,projectile.life));
+    if(projectile.tracking>0){
+      const angle=Math.atan2(projectile.vy,projectile.vx),desired=Math.atan2(game.ufo.y-projectile.y,game.ufo.x-projectile.x);
+      const turn=projectile.turnRate*Math.min(travel,projectile.tracking);
+      const next=angle+clamp(angleDifference(desired,angle),-turn,turn),speed=projectile.speed||Math.hypot(projectile.vx,projectile.vy);
+      projectile.vx=Math.cos(next)*speed;projectile.vy=Math.sin(next)*speed;
+      projectile.tracking=Math.max(0,projectile.tracking-travel);
+    }
+    projectile.vy+=(projectile.gravity||0)*travel;projectile.x+=projectile.vx*travel;projectile.y+=projectile.vy*travel;
+    projectile.life-=dt;projectile.rotation=(projectile.rotation||0)+dt*7;
+    let earliest=null;
+    const check=(box,type,moving=false)=>{
+      const hit=moving?movingHit(previousX,previousY,projectile.x,projectile.y,box,projectile.radius):segmentHit(previousX,previousY,projectile.x,projectile.y,box,projectile.radius);
+      if(hit&&(!earliest||hit.time<earliest.time))earliest={...hit,target:box,type};
+    };
+    if(travel>0){
+      for(const b of game.buildings)if(b.hp>0)check(b,'building');
+      for(const cargo of game.entities)if(!cargo.dead&&CARGO.has(cargo.kind)&&cargo.id!==projectile.owner)check(cargo,'cargo',true);
+      check(game.ufo,'ufo',true);
+    }
+    if(earliest){
+      projectile.x=previousX+(projectile.x-previousX)*earliest.time;projectile.y=previousY+(projectile.y-previousY)*earliest.time;projectile.dead=true;
+      if(earliest.type==='ufo')damageUfo(game,projectile.damage||10,projectile.kind);
+      else{
+        burst(game,projectile.x,projectile.y,earliest.type==='cargo'?'#cbff92':'#f4bb7d',5,65);
+        if(earliest.type==='cargo'){
+          earliest.target.flash=.16;
+          if(earliest.target.kind==='bomb'&&earliest.target.physical!=='lifted')destroyCargo(game,earliest.target);
+        }
+      }
+    }
+    if(projectile.life<=0||projectile.x< -150||projectile.x>WORLD.width+150||projectile.y< -200||projectile.y>WORLD.ground)projectile.dead=true;
+  }
+}
+
+function spawnTransport(game) {
+  if (game.populationReserve <= 0 || game.entities.filter(entity => !entity.dead && entity.kind === 'truck').length >= 2) return;
+  const left = game.random() < .5;
+  const passengers = Math.min(4, game.populationReserve);
+  game.populationReserve -= passengers;
+  spawnEntity(game, 'truck', left ? -100 : WORLD.width + 100, undefined, {
+    state: 'enter', direction: left ? 1 : -1, passengers,
+    dropX: left ? 620 : 1810, vx: left ? 95 : -95,
+  });
+}
+
+function updateDirector(game, dt) {
+  const director = game.director;
+  director.relief = Math.max(0, director.relief - dt);
+  director.attackCooldown = Math.max(0, director.attackCooldown - dt);
+  const cycle = (game.time - 8) % 38;
+  director.phase = game.time < 8 ? 'introduce' : cycle < 13 ? 'build' : cycle < 27 ? 'peak' : 'recovery';
+  director.phaseTimer = game.time < 8 ? 8 - game.time : cycle < 13 ? 13 - cycle : cycle < 27 ? 27 - cycle : 38 - cycle;
+  director.maxAttacks = game.difficulty === 'easy' ? 2 : game.difficulty === 'hard' ? 4 : game.mission.threat >= 3 ? 3 : 2;
+  director.threat = game.projectiles.filter(projectile => !projectile.dead).length +
+    game.entities.filter(entity => entity.state === 'aim' || entity.state === 'committed').length;
+  director.nextTruck -= dt;
+  if (director.nextTruck <= 0 && director.phase !== 'peak') {
+    spawnTransport(game);
+    director.nextTruck = 15;
+  }
+  // Reserved population arrives promptly when the field has almost been cleared.
+  if (game.populationReserve > 0 && game.entities.filter(entity => !entity.dead && entity.collectible).length < 3) {
+    director.nextTruck = Math.min(director.nextTruck, 1);
+  }
+  if (director.warning > 0) {
+    director.warning = Math.max(0, director.warning - dt);
+    if (director.warning === 0) {
+      const left = director.warningSide === 'left';
+      const speed = (270 + game.mission.threat * 28) * Math.sqrt(game.challenge);
+      spawnEntity(game, 'plane', left ? -130 : WORLD.width + 130, director.warningY,
+        { vx: left ? speed : -speed, state: 'fly', direction: left ? 1 : -1 });
+      director.relief = Math.max(director.relief, 1.2);
+    }
+  } else {
+    director.nextPlane -= dt;
+    if (director.nextPlane <= 0 && director.relief <= 0 && director.phase !== 'introduce' &&
+        (!game.boss || game.boss.state === 'recover')) {
+      director.warning = 3;
+      director.warningSide = game.random() < .5 ? 'left' : 'right';
+      director.warningY = randomBetween(game, 175, 355);
+      director.nextPlane = randomBetween(game, 17, 24) / Math.sqrt(game.challenge);
+      event(game, 'warning', { side: director.warningSide, y: director.warningY });
+    }
+  }
+}
+
+function bossLaunchBomb(game, boss) {
+  const count = game.entities.filter(entity => !entity.dead && entity.kind === 'bomb').length;
+  if (count >= 8) return;
+  const targetX = clamp(boss.telegraphX + randomBetween(game, -120, 120), 150, boss.x - 180);
+  const startX = boss.x - 50;
+  const startY = boss.y - 155;
+  const travel = 1.45;
+  const targetY = WORLD.ground - 16;
+  spawnEntity(game, 'bomb', startX, startY, { physical: 'airborne', state: 'falling',
+    vx: (targetX - startX) / travel,
+    vy: (targetY - startY - .5 * GRAVITY * travel * travel) / travel,
+    harmful: true, wasCarried: false, impactGrace: .35, fuse: 18 });
+  event(game, 'shot', { x: startX, y: startY, kind: 'boss' });
+}
+
+function updateBoss(game, dt) {
+  const boss = game.boss;
+  if (!boss || boss.hp <= 0) return;
+  boss.timer -= dt;
+  boss.flash = Math.max(0, boss.flash - dt);
+  const nextPhase = boss.hp <= boss.maxHp * .3 ? 3 : boss.hp <= boss.maxHp * .65 ? 2 : 1;
+  if (nextPhase > boss.phase) {
+    boss.phaseTransitions += nextPhase - boss.phase;
+    boss.phase = nextPhase;
+    label(game, boss.x, boss.y - 210, `ATLAS · PHASE ${boss.phase}`, '#ffca80');
+    boss.flash = .7;
+  }
+  if (boss.state === 'charge') {
+    boss.telegraphX = approach(boss.telegraphX, game.ufo.x, 2, dt);
+    if (boss.timer <= 0) {
+      boss.state = 'volley';
+      boss.timer = 1.25 + boss.phase * .18;
+      boss.nextShot = 0;
+      boss.volleyCount = 0;
+    }
+  } else if (boss.state === 'volley') {
+    boss.nextShot -= dt;
+    if (boss.nextShot <= 0 && boss.volleyCount < boss.phase + 1) {
+      bossLaunchBomb(game, boss);
+      boss.volleyCount++;
+      boss.nextShot = .55;
+    }
+    if (boss.timer <= 0) {
+      boss.state = 'exposed';
+      boss.vulnerable = true;
+      boss.timer = 6.5 - boss.phase * .3;
+      game.director.relief = Math.max(game.director.relief, 1);
+      label(game, boss.x, boss.y - 200, 'CORE EXPOSED · DROP CARGO', '#ccff95');
+    }
+  } else if (boss.state === 'exposed') {
+    if (boss.timer <= 0) {
+      boss.vulnerable = false;
+      boss.state = 'recover';
+      boss.timer = 2.6 - boss.phase * .2;
+    }
+  } else if (boss.timer <= 0) {
+    boss.state = 'charge';
+    boss.vulnerable = false;
+    boss.timer = 2.25;
+    boss.telegraphX = game.ufo.x;
+    event(game, 'warning', { boss: true, x: boss.x });
+  }
+}
+
+function updateEffects(game, dt) {
+  for (const particle of game.particles) {
+    particle.life -= dt;
+    particle.x += particle.vx * dt;
+    particle.y += particle.vy * dt;
+    particle.vy += dt * 95;
+  }
+  game.particles = game.particles.filter(particle => particle.life > 0);
+  for (const text of game.texts) { text.life -= dt; text.y -= dt * 26; }
+  game.texts = game.texts.filter(text => text.life > 0);
+  for (const building of game.buildings) building.flash = Math.max(0, building.flash - dt);
+  game.shake = Math.max(0, game.shake - dt);
+}
+
+function finishGame(game, won) {
+  if (game.status !== 'playing') return;
+  game.status = won ? 'won' : 'lost';
+  game.ufo.beamOn = false;
+  releaseLoad(game);
+  game.completedBy = won ? game.boss ? 'boss' : getRemainingPopulation(game) === 0 ? 'clear' : 'survival' :
+    game.ufo.hp <= 0 ? 'shield' : 'time';
+  event(game, won ? 'win' : 'lose', { credits: game.stats.credits, reason: game.completedBy });
+}
+
+function tick(game, input, dt) {
+  if (game.status !== 'playing') { updateEffects(game, dt); return; }
+  game.time += dt;
+  game.remaining = Math.max(0, game.mission.duration - game.time);
+  updateUfo(game, input, dt);
+  updateDirector(game, dt);
+  updateBeam(game, input, dt);
+  updateEntities(game, dt);
+  if (game.status === 'playing') updateProjectiles(game, dt);
+  if (game.status === 'playing') updateBoss(game, dt);
+  updateEffects(game, dt);
+  for(const building of game.buildings)building.occupancy=0;
+  for(const entity of game.entities)if(!entity.dead&&entity.state==='sheltered'){
+    const building=game.buildings.find(b=>b.id===entity.shelterId&&b.hp>0);if(building)building.occupancy++;
+  }
+  game.entities = game.entities.filter(entity => !entity.dead);
+  game.projectiles = game.projectiles.filter(projectile => !projectile.dead);
+  game.ufo.load = game.entities.reduce((sum, entity) => sum + (entity.physical === 'lifted' ? entity.load : 0), 0);
+  game.comboTimer = Math.max(0, game.comboTimer - dt);
+  if (game.comboTimer === 0) { game.stats.combo = 1; game.stats.streak = 0; }
+  if (game.status === 'playing') {
+    if (game.ufo.hp <= 0) finishGame(game, false);
+    else if (game.boss ? game.boss.hp <= 0 : getRemainingPopulation(game) === 0 || game.remaining === 0) finishGame(game, true);
+    else if (game.remaining === 0) finishGame(game, false);
+  }
+}
+
+function stepGame(game, input = {}, dt = 1 / 60) {
+  if (!Number.isFinite(dt) || dt <= 0) return game;
+  // Cap a suspended tab's catch-up and substep explicit larger test ticks safely.
+  const duration = Math.min(.25, dt);
+  const steps = Math.max(1, Math.ceil(duration / (1 / 60)));
+  for (let i = 0; i < steps; i++) tick(game, input, duration / steps);
+  return game;
+}
+
+return {angleDifference,hasLineOfSight,spawnEntity,getRemainingPopulation,createGame,releaseLoad,damageUfo,stepGame};
+})();
+
+__modules["render"] = (() => {
+const { WORLD } = __modules["config"];
+
+// All artwork is drawn in world units. The renderer never changes game state.
+const TAU = Math.PI * 2;
+const INK = '#123747';
+const MINT = '#b8ffca';
+const CORAL = '#ff886f';
+const PAL = {
+  farm: { top:'#122e42', bottom:'#285d66', far:'#245b64', mid:'#28696b', near:'#1d5558', ground:'#244b48', accent:'#cd7466' },
+  town: { top:'#1c3049', bottom:'#426777', far:'#35576c', mid:'#376778', near:'#285962', ground:'#294e4c', accent:'#d89c71' },
+  industrial: { top:'#222a47', bottom:'#586474', far:'#404b68', mid:'#3f5e6f', near:'#2e4c5e', ground:'#304a50', accent:'#cf866f' },
+  base: { top:'#152f46', bottom:'#3d7374', far:'#2b5e68', mid:'#326e70', near:'#21595b', ground:'#294c48', accent:'#8ba49b' },
+  boss: { top:'#302c48', bottom:'#6c6377', far:'#554e69', mid:'#4a5a68', near:'#344956', ground:'#3c474e', accent:'#e18b7a' }
+};
+const rand = n => { const v = Math.sin(n * 127.1 + 311.7) * 43758.5453; return v - Math.floor(v); };
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const finite = (v, fallback=0) => Number.isFinite(v) ? v : fallback;
+function oval(c,x,y,rx,ry,fill,stroke=null,lw=1) { c.beginPath(); c.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),0,0,TAU); if(fill){c.fillStyle=fill;c.fill();} if(stroke){c.strokeStyle=stroke;c.lineWidth=lw;c.stroke();} }
+function line(c,x1,y1,x2,y2,color,width=1) { c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.strokeStyle=color;c.lineWidth=width;c.stroke(); }
+function poly(c,points,fill,stroke=null,lw=1) { c.beginPath();points.forEach((p,i)=>i?c.lineTo(...p):c.moveTo(...p));c.closePath();if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw;c.stroke();} }
+function rect(c,x,y,w,h,fill,r=0,stroke=null,lw=1) { c.beginPath(); if(r&&c.roundRect)c.roundRect(x,y,w,h,r);else c.rect(x,y,w,h);if(fill){c.fillStyle=fill;c.fill();}if(stroke){c.strokeStyle=stroke;c.lineWidth=lw;c.stroke();} }
+function glow(c,x,y,r,color,strength=.5) { if(r<=0)return;const g=c.createRadialGradient(x,y,0,x,y,r);g.addColorStop(0,color);g.addColorStop(1,'transparent');c.save();c.globalAlpha*=strength;c.fillStyle=g;c.fillRect(x-r,y-r,r*2,r*2);c.restore(); }
+function label(c,text,x,y,color='#e0ffe7',size=11,align='center') { c.font=`600 ${size}px ui-monospace, SFMono-Regular, Menlo, monospace`;c.textAlign=align;c.textBaseline='middle';c.fillStyle=color;c.fillText(text,x,y); }
+
+function sky(c,w,h,cam,time,theme,menu) {
+  const p=PAL[theme]||PAL.farm;
+  const g=c.createLinearGradient(0,0,0,620);g.addColorStop(0,p.top);g.addColorStop(.65,p.bottom);g.addColorStop(1,'#56857c');c.fillStyle=g;c.fillRect(0,0,w,h);
+  // A luminous, gently imperfect moon and a sparse, deliberate star field.
+  const mx=w*.798-cam*.035,my=166;
+  glow(c,mx,my,210,'#97dbbc',.13);
+  for(let i=0;i<95;i++) {
+    const x=((rand(i+1)*1800-cam*.08)%w+w)%w,y=35+rand(i+402)*340;
+    const alpha=(.25+rand(i+729)*.5)*(.8+.2*Math.sin(time*.5+i));
+    c.globalAlpha=alpha; const r=rand(i+990)>.94?1.7:.7;
+    oval(c,x,y,r,r,'#d8fbe0');
+    if(r>1){line(c,x-4,y,x+4,y,'#a2ceba',.7);line(c,x,y-4,x,y+4,'#a2ceba',.7);}
+  }
+  c.globalAlpha=1;
+  oval(c,mx,my,83,83,'#bbd9bd');
+  c.save();c.beginPath();c.arc(mx,my,83,0,TAU);c.clip();
+  const mg=c.createLinearGradient(mx-80,my-80,mx+80,my+80);mg.addColorStop(0,'#e9efd0');mg.addColorStop(1,'#9bc9b1');c.fillStyle=mg;c.fillRect(mx-85,my-85,170,170);
+  c.globalAlpha=.16;oval(c,mx+32,my-11,49,59,'#6aa49e');oval(c,mx-24,my+43,33,19,'#6aa49e');oval(c,mx-41,my-22,15,18,'#6aa49e');oval(c,mx+20,my-46,11,8,'#6aa49e');oval(c,mx-5,my+6,16,12,'#a9c1a5');
+  for(let i=0;i<27;i++)oval(c,mx-65+rand(i+100)*130,my-66+rand(i+210)*130,2+rand(i+38)*8,2+rand(i+38)*5,'#568b8c');
+  c.restore();
+  // Thin vapor drifts below the stars. Motifs repeat seamlessly while flying.
+  for(let i=0;i<7;i++) {
+    const x=((i*310+rand(i+19)*190-cam*.16+time*(i%2?.8:1.2))%(w+500)+w+500)%(w+500)-250;
+    const y=210+rand(i+54)*145;
+    c.save();c.globalAlpha=.045;oval(c,x,y,130+rand(i+55)*60,9,'#d7f0cb');oval(c,x+70,y-4,120,5,'#d7f0cb');c.restore();
+  }
+  // Hand-shaped layered hills, kept low so objects read cleanly against the sky.
+  hills(c,w,cam*.12,425,130,p.far,3);
+  hills(c,w,cam*.24,478,100,p.mid,7);
+  hills(c,w,cam*.40,538,80,p.near,12);
+  c.save();c.globalAlpha=.08;
+  for(let i=0;i<11;i++){const x=i*180-(cam*.38%180);c.beginPath();c.moveTo(x,509);c.quadraticCurveTo(x+80,496,x+170,529);c.strokeStyle='#d2e8ac';c.lineWidth=2;c.stroke();}
+  c.restore();
+  distantScenery(c,w,cam,time,theme);
+  // Thin haze gives the darkest silhouettes an atmospheric edge.
+  const fog=c.createLinearGradient(0,515,0,610);fog.addColorStop(0,'#8dc7aa00');fog.addColorStop(1,'#8dc7aa12');c.fillStyle=fog;c.fillRect(0,515,w,95);
+}
+
+function hills(c,w,offset,base,amp,color,seed) {
+  c.beginPath();c.moveTo(-200,720);
+  const span=460, start=Math.floor(offset/span)-1;
+  for(let i=start;i<start+Math.ceil(w/span)+4;i++) {
+    const x=i*span-offset,y=base-rand(i+seed)*amp;
+    if(i===start)c.lineTo(x,y);
+    c.bezierCurveTo(x+span*.35,y-38,x+span*.68,base-rand(i+1+seed)*amp-22,x+span,base-rand(i+1+seed)*amp);
+  }
+  c.lineTo(w+300,720);c.closePath();c.fillStyle=color;c.fill();
+}
+
+function distantScenery(c,w,cam,time,theme) {
+  const off=cam*.55;
+  c.save();c.strokeStyle='#25525a';c.lineCap='round';
+  for(let i=0;i<18;i++) {
+    const x=i*165-off-90, y=569+rand(i+6)*10, s=.65+rand(i+20)*.7;
+    if(x < -170 || x > w+170)continue;
+    if((theme==='industrial'||theme==='base'||theme==='boss')&&i%3===0) {
+      rect(c,x,y-100*s,45*s,100*s,'#2a515b');rect(c,x-8*s,y-105*s,61*s,7*s,'#355f64');
+      rect(c,x+60*s,y-67*s,50*s,67*s,'#2a515b');
+      for(let j=0;j<3;j++){rect(c,x+9*s+j*12*s,y-73*s,6*s,3*s,'#86a47c');rect(c,x+9*s+j*12*s,y-52*s,6*s,3*s,'#577b70');}
+      const pulse=.4+.35*Math.sin(time*2+i);c.globalAlpha=pulse;oval(c,x+22*s,y-108*s,2.5,2.5,CORAL);c.globalAlpha=1;
+    } else if(i%5===1) {
+      // Water tower, thin supports and an ellipsoid reservoir.
+      line(c,x-16*s,y-71*s,x-22*s,y,'#214851',3);line(c,x+16*s,y-71*s,x+22*s,y,'#214851',3);
+      line(c,x-20*s,y-10*s,x+18*s,y-55*s,'#214851',1.5);line(c,x+20*s,y-10*s,x-18*s,y-55*s,'#214851',1.5);
+      rect(c,x-25*s,y-93*s,50*s,29*s,'#386a70',6);oval(c,x,y-93*s,25*s,7*s,'#4a7778');oval(c,x,y-64*s,25*s,6*s,'#315e64');
+      rect(c,x-17*s,y-88*s,4*s,18*s,'#578782',2);
+    } else {
+      const type=i%3;
+      line(c,x,y,x,y-56*s,'#244c50',5*s);
+      if(type===0){for(let j=0;j<3;j++)poly(c,[[x-21*s+j*3*s,y-15*s-j*14*s],[x,y-84*s+j*5*s],[x+21*s-j*3*s,y-15*s-j*14*s]],'#2c5b5c');}
+      else {oval(c,x,y-55*s,24*s,30*s,'#2b5b5d');oval(c,x-15*s,y-43*s,21*s,22*s,'#2b5b5d');oval(c,x+14*s,y-42*s,22*s,23*s,'#2b5b5d');}
+    }
+  }
+  c.restore();
+  // Distant pole wires frame the human world without interfering with play.
+  c.save();c.globalAlpha=.6;
+  for(let i=0;i<7;i++){
+    const x=i*420-cam*.68-90,y=516+(i%2)*9;
+    line(c,x,y,x,609,'#28515a',4);line(c,x-17,y+6,x+17,y+6,'#28515a',3);
+    c.beginPath();c.moveTo(x,y+9);c.quadraticCurveTo(x+210,y+55,x+420,516+((i+1)%2)*9+9);c.strokeStyle='#2a5258';c.lineWidth=1.2;c.stroke();
+  }c.restore();
+}
+
+function ground(c,w,cam,theme,time) {
+  const p=PAL[theme]||PAL.farm;
+  const g=c.createLinearGradient(0,600,0,720);g.addColorStop(0,p.ground);g.addColorStop(.23,'#1e3e3d');g.addColorStop(1,'#142e34');
+  c.fillStyle=g;c.fillRect(0,609,w,111);
+  rect(c,0,609,w,4,'#668970');rect(c,0,613,w,4,'#344e44');
+  c.save();c.globalAlpha=.24;
+  for(let i=0;i<155;i++) {
+    const wx=i*23+rand(i+80)*18,x=wx-cam;
+    if(x<0||x>w)continue;
+    const y=624+rand(i+11)*84;
+    rect(c,x,y,3+rand(i+75)*11,1.2,'#91b099',1);
+  }c.restore();
+  // Bare footpath and small tufts make the play surface easy to read.
+  for(let i=0;i<61;i++){
+    const x=i*43+rand(i+4)*12-cam;if(x< -15||x>w+15)continue;
+    const tall=4+rand(i+72)*8;
+    line(c,x,610,x-3,610-tall,'#729875',1.3);line(c,x+1,610,x+5,607-tall*.6,'#547b62',1.3);
+  }
+  // Fence occupies the lower background, with deliberate gaps for buildings.
+  for(let i=0;i<48;i++) {
+    const x=i*57+20-cam;
+    if(x<-80||x>w+80||i%9>5)continue;
+    rect(c,x,585,5,25,'#486b60',1);poly(c,[[x,585],[x+2.5,581],[x+5,585]],'#628375');
+    rect(c,x+4,591,53,3,'#47665b');rect(c,x+4,601,53,3,'#47665b');
+  }
+}
+
+function drawBarn(c,b,theme,time) {
+  const x=b.x-b.w/2,y=b.y-b.h/2,w=b.w,h=b.h;
+  const health=finite(b.hp,100);if(health<=0){rubble(c,b.x,b.y+b.h/2,w,theme);return;}
+  const industrial=theme==='industrial'||theme==='base'||theme==='boss';
+  c.save();
+  oval(c,b.x,y+h+3,w*.65,7,'#0d2b3045');
+  if(industrial) {
+    const roof=Math.min(18,h*.19);
+    rect(c,x,y+roof,w,h-roof,'#4e706c',2,INK,2);
+    poly(c,[[x-5,y+roof],[x+12,y],[x+w-12,y],[x+w+5,y+roof]],'#87a19a',INK,2);
+    rect(c,x+8,y+roof+4,w-16,6,'#718c7f');
+    const dw=w*.34,dh=h*.6;
+    rect(c,b.x-dw/2,y+h-dh,dw,dh,'#1d4148',2,'#89a090',2);
+    for(let j=1;j<5;j++)line(c,b.x-dw/2+3,y+h-dh+j*dh/5,b.x+dw/2-3,y+h-dh+j*dh/5,'#426369',1);
+    for(let j=0;j<2;j++){const wx=x+10+j*(w-30);rect(c,wx,y+h*.42,17,h*.2,'#a6b999',1,INK,2);line(c,wx+8,y+h*.42,wx+8,y+h*.62,'#3b5b5d',2);}
+    rect(c,b.x-16,y+roof+13,32,11,'#304e51',1);label(c,theme==='base'?'51':'NO. 08',b.x,y+roof+18,'#cbd6b5',6);
+    for(let j=0;j<Math.floor(w/19);j++)poly(c,[[x+j*19,y+h-8],[x+j*19+7,y+h-8],[x+j*19+12,y+h],[x+j*19+5,y+h]],j%2?'#839371':'#324d48');
+    line(c,x+w*.8,y,x+w*.8,y-25,'#769a8f',2);oval(c,x+w*.8,y-25,3,3,CORAL);glow(c,x+w*.8,y-25,15,CORAL,.25+.15*Math.sin(time*3));
+    if(theme==='base'){line(c,x+20,y,x+20,y-28,'#6f958d',2);c.beginPath();c.arc(x+20,y-32,14,.1,Math.PI-.1);c.fillStyle='#9db2a5';c.fill();line(c,x+20,y-32,x+32,y-44,'#a3bbb0',1.5);}
+  } else {
+    const roof=h*.28, body=h-roof;
+    rect(c,x,y+roof,w,body,theme==='town'?'#8b8270':'#9f655b',1,INK,2);
+    for(let j=1;j<Math.floor(w/11);j++)line(c,x+j*11,y+roof+2,x+j*11,y+h-1,theme==='town'?'#6d7063':'#80534c',1);
+    poly(c,[[x-7,y+roof+4],[x+w*.20,y+5],[b.x,y-7],[x+w*.80,y+5],[x+w+7,y+roof+4]],'#30545b',INK,2);
+    line(c,x+w*.20,y+6,b.x,y-5,'#7e9b8b',2);line(c,b.x,y-5,x+w*.80,y+6,'#7e9b8b',2);
+    line(c,x-5,y+roof+5,x+w+5,y+roof+5,'#c5b39a',3);
+    const dw=w*.39,dh=body*.7,dy=y+h-dh;
+    rect(c,b.x-dw/2,dy,dw,dh,'#573f3e',1,'#c7b599',2.5);
+    line(c,b.x,dy+1,b.x,y+h,'#c7b599',2);
+    line(c,b.x-dw/2+3,dy+4,b.x-2,y+h-3,'#ad9c80',2);line(c,b.x+dw/2-3,dy+4,b.x+2,y+h-3,'#ad9c80',2);
+    for(let j=0;j<2;j++){
+      const wx=x+w*(j?.78:.12),wy=y+roof+body*.25;
+      glow(c,wx+6,wy+8,20,'#e9c27c',.12);rect(c,wx,wy,12,17,'#d9b77a',1,INK,2);line(c,wx+6,wy,wx+6,wy+17,'#614f49',1.5);line(c,wx,wy+8,wx+12,wy+8,'#614f49',1.5);
+    }
+    oval(c,b.x,y+roof*.52,7,7,'#c1c3a1',INK,2);line(c,b.x-6,y+roof*.52,b.x+6,y+roof*.52,'#3a5c5e',2);line(c,b.x,y+roof*.52-6,b.x,y+roof*.52+6,'#3a5c5e',2);
+    if(theme==='farm') {
+      // Small attached silo; its size stays within the collision silhouette.
+      const sx=x+w-24, sy=y+roof+8;
+      rect(c,sx,sy,19,h-roof-8,'#789489',1,'#385c5a',1.5);oval(c,sx+9.5,sy,9.5,5,'#a4b39c','#385c5a',1.5);
+      for(let j=1;j<4;j++)line(c,sx+1,sy+j*(h-roof-8)/4,sx+18,sy+j*(h-roof-8)/4,'#4f756f',1);
+    }
+  }
+  if(b.shelter) {
+    const n=b.occupants?.length||finite(b.occupancy,0);
+    if(n>0){rect(c,b.x-16,y-28,32,15,'#22494b',7,'#86ba9d',1);label(c,`${n} IN`,b.x,y-20,'#bce3b4',8);}
+  }
+  if(health/finite(b.maxHp,100)<.5){c.globalAlpha=.6;line(c,x+w*.36,y+h*.4,x+w*.47,y+h*.6,'#122b32',2);line(c,x+w*.47,y+h*.6,x+w*.42,y+h*.8,'#122b32',2);}
+  if(b.flash>0){c.globalAlpha=clamp(b.flash,0,.3);rect(c,x,y,w,h,'#fff1cd',2);}
+  c.restore();
+}
+
+function rubble(c,x,y,w,theme) {
+  const col=theme==='farm'?'#83645a':'#60726b';
+  for(let i=0;i<7;i++){const px=x-w*.45+i*w*.15;poly(c,[[px,y],[px-7,y-7-rand(i+92)*12],[px+9,y-9-rand(i+54)*10],[px+17,y]],col,INK,1);}
+}
+
+function shadow(c,e) {
+  if(e.kind==='plane'||e.state==='sheltered'||e.dead||!Number.isFinite(e.x)||!Number.isFinite(e.y))return;
+  const altitude=Math.max(0,WORLD.ground-e.y-(e.h||24)/2);
+  c.save();c.globalAlpha=Math.max(.07,.22-altitude*.0005);oval(c,e.x,WORLD.ground+2,(e.w||20)*.48*(1+altitude*.001),3+Math.min(5,(e.w||20)*.05),'#061e29');c.restore();
+}
+
+function person(c,e,time) {
+  const h=e.h||30,w=e.w||16,s=h/32;
+  const lifted=e.physical==='lifted',air=e.physical==='airborne',stunned=e.physical==='stunned';
+  const attack=e.state==='aim'||e.state==='committed';
+  const fleeing=e.state==='flee'||e.state==='fleeing';
+  const speed=Math.abs(e.vx||0),walk=Math.sin(time*(fleeing?17:10)+(e.id||0)*1.3)*(speed>2?3:0);
+  const flip=attack&&Number.isFinite(e.aimX)?(e.aimX<e.x?-1:1):(e.facing||e.direction||((e.vx||0)<-1?-1:1));
+  const skin=['#e5b195','#ca947d','#d9b383','#b77b64'][Math.abs((e.id||0)%4)];
+  const shirt=e.kind==='agent'?'#484e68':e.kind==='gunner'?'#899e72':e.kind==='thrower'?'#d5a06b':['#d98b7a','#a8b9a1','#779fac','#ba9fc1'][Math.abs((e.id||0)%4)];
+  c.save();c.translate(e.x,e.y);c.scale(s*flip,s);
+  if(air)c.rotate(clamp((e.vx||0)*.005,-.65,.65));
+  if(stunned)c.rotate(.6);
+  if(e.state==='sheltered')c.globalAlpha=.28;
+  c.lineCap='round';c.lineJoin='round';
+  // Boots, knees, and bent legs add a readable walking rhythm even at small scale.
+  const spread=lifted?4:walk;
+  line(c,-3,5,-4-spread,13,'#243b49',4);line(c,3,5,4+spread,13,'#243b49',4);
+  line(c,-4-spread,14,-1-spread,14,'#b4b9a0',2.5);line(c,4+spread,14,7+spread,14,'#b4b9a0',2.5);
+  rect(c,-6,-7,12,15,shirt,3,INK,1.2);
+  if(e.kind==='agent'){poly(c,[[-2,-7],[0,-3],[2,-7]],'#e1e5d1');line(c,0,-3,0,4,'#ca738e',1.4);}
+  if(e.kind==='thrower'){line(c,-3,-6,-3,6,'#605a51',1.5);line(c,3,-6,3,6,'#605a51',1.5);}
+  const armY=lifted?-13:attack?-7:-1;
+  line(c,-5,-4,-9+(lifted?-1:walk*.4),armY,shirt,3);line(c,5,-4,9+(lifted?1:-walk*.4),armY,shirt,3);
+  oval(c,-9+(lifted?-1:walk*.4),armY,2,2,skin);oval(c,9+(lifted?1:-walk*.4),armY,2,2,skin);
+  oval(c,0,-12,5.7,6.5,skin,INK,1.3);
+  if(e.kind==='agent') {
+    rect(c,-5,-16,10,4,'#303b4f',2);rect(c,-5,-13,11,3,'#253d4f',1);line(c,-3,-12,0,-12,'#9fdfbc',1);
+  } else if(e.kind==='thrower') {
+    rect(c,-8,-17,16,3,'#bcb48b',1);rect(c,-5,-21,10,5,'#bcb48b',2);rect(c,-4,-17,9,1,'#71644e');
+  } else if(e.kind==='gunner') {
+    c.beginPath();c.arc(0,-14,6,Math.PI,TAU);c.fillStyle='#647966';c.fill();rect(c,-6,-14,15,2,'#9caa7e',1);
+  } else {
+    c.beginPath();c.arc(-1,-14,5.8,Math.PI,TAU);c.lineTo(5,-12);c.lineTo(2,-15);c.closePath();c.fillStyle=['#655052','#8c654d','#c1a26c'][Math.abs((e.id||0)%3)];c.fill();
+  }
+  oval(c,3,-12,1,1.1,'#263e45');
+  if(e.kind==='thrower') {
+    c.save();c.translate(11,attack?-9:2);c.rotate(attack?-.8:.15);line(c,0,-14,0,12,'#8e9b85',1.5);line(c,-4,-19,-4,-13,'#bdd0ac',1.3);line(c,0,-20,0,-13,'#bdd0ac',1.3);line(c,4,-19,4,-13,'#bdd0ac',1.3);line(c,-4,-13,4,-13,'#bdd0ac',1.3);c.restore();
+  } else if(e.kind==='gunner'||e.kind==='agent') {
+    c.save();c.translate(8,attack?-7:0);c.rotate(attack?-1.05:-.2);rect(c,-3,-2,15,4,e.kind==='agent'?'#7fa8a4':'#7c6c54',1,INK,1);rect(c,6,-2,7,2,e.kind==='agent'?'#a9efc1':'#bfbea1',1);c.restore();
+  }
+  c.restore();
+  if(stunned) {
+    for(let i=0;i<3;i++){const a=time*3+i*TAU/3;star(c,e.x+Math.cos(a)*10,e.y-h*.7+Math.sin(a)*3,2.5,'#ffe3a3');}
+  }
+  if(fleeing&&Math.sin(time*5+(e.id||0))>-.2)label(c,'!',e.x,e.y-h*.5-10,'#f2cf9b',14);
+}
+
+function star(c,x,y,r,color) { poly(c,[[x,y-r],[x+r*.3,y-r*.3],[x+r,y],[x+r*.3,y+r*.3],[x,y+r],[x-r*.3,y+r*.3],[x-r,y],[x-r*.3,y-r*.3]],color); }
+
+function cow(c,e,time) {
+  const s=(e.w||38)/38,flip=e.direction||((e.vx||0)<0?-1:1),walk=Math.sin(time*8+(e.id||0))*(Math.abs(e.vx||0)>2?2:0);
+  c.save();c.translate(e.x,e.y);c.scale(s*flip,s);
+  if(e.physical==='airborne')c.rotate((e.vx||0)*.002);
+  for(let i=0;i<4;i++){const x=-12+i*7;line(c,x,4,x+(i%2?walk:-walk),12,'#b8c5af',3);line(c,x+(i%2?walk:-walk),12,x+2+(i%2?walk:-walk),12,'#354951',3);}
+  oval(c,-2,-1,17,10,'#dce0c5',INK,1.5);oval(c,-8,-4,6,5,'#43565d');oval(c,5,1,5,6,'#43565d');
+  line(c,-18,-3,-23,4,'#d2dabd',2);line(c,-23,4,-22,7,'#40555a',3);
+  oval(c,15,-4,8,9,'#dce0c5',INK,1.5);oval(c,18,1,7,4,'#cea094',INK,1);
+  poly(c,[[10,-10],[8,-16],[14,-11]],'#ceccae',INK,1);poly(c,[[18,-11],[22,-16],[22,-8]],'#ceccae',INK,1);
+  oval(c,13,-6,1.3,1.7,'#223e45');oval(c,20,-6,1.1,1.5,'#223e45');oval(c,17,1,1,1,'#805e60');oval(c,21,1,1,1,'#805e60');
+  c.restore();
+}
+
+function rock(c,e) {
+  const w=e.w||36,h=e.h||29;
+  c.save();c.translate(e.x,e.y);if(e.physical==='airborne')c.rotate(finite(e.rotation,(e.vx||0)*.003));
+  poly(c,[[-w*.5,h*.3],[-w*.47,-h*.12],[-w*.22,-h*.48],[w*.15,-h*.53],[w*.48,-h*.17],[w*.5,h*.28],[w*.25,h*.48],[-w*.24,h*.48]],'#809e9a',INK,2);
+  poly(c,[[-w*.47,-h*.12],[-w*.22,-h*.48],[w*.15,-h*.53],[w*.29,-h*.14],[-w*.12,h*.1]],'#aec2ae');
+  poly(c,[[-w*.12,h*.1],[w*.29,-h*.14],[w*.48,-h*.17],[w*.5,h*.28],[w*.25,h*.48]],'#587a7b');
+  line(c,-w*.2,-h*.29,w*.02,-h*.33,'#d1d9ba',1.5);line(c,-w*.32,h*.22,-w*.17,h*.3,'#637f7c',1);
+  c.restore();
+}
+
+function truck(c,e,time) {
+  const w=e.w||92,h=e.h||42,s=w/92,flip=(e.vx||0)<0?-1:1;
+  c.save();c.translate(e.x,e.y);c.scale(s*flip,s);if(e.physical==='airborne')c.rotate(clamp((e.vx||0)*.002,-.4,.4));
+  rect(c,-43,-16,55,30,'#d7a579',3,INK,2);rect(c,-43,-16,55,4,'#f0c99a',2);
+  for(let j=0;j<5;j++)line(c,-36+j*10,-10,-36+j*10,10,'#a87a5d',1.4);
+  line(c,-42,-2,11,-2,'#ae7f5d',2);rect(c,-42,13,81,5,'#34545b',1,INK,1);
+  poly(c,[[12,-9],[17,-20],[33,-20],[42,-5],[45,13],[12,13]],'#80b3a0',INK,2);
+  poly(c,[[20,-16],[31,-16],[37,-6],[19,-6]],'#274e60',INK,1.3);poly(c,[[21,-15],[25,-15],[21,-7]],'#a8cfb4');
+  rect(c,18,-2,5,2,'#d5ddbb',1);rect(c,42,4,4,5,'#f7d890',1);rect(c,-45,7,3,4,CORAL,1);
+  for(const x of [-28,29]){oval(c,x,16,10,10,'#163a45','#8ca59a',1.5);oval(c,x,16,5,5,'#758f87');oval(c,x,16,2,2,'#c9d1b3');}
+  if(e.state==='unload'){label(c,'DELIVERY',-15,-24,'#f2c898',7);}
+  c.restore();
+}
+
+function plane(c,e,time) {
+  const s=(e.w||90)/90,flip=(e.vx||0)<0?-1:1;
+  c.save();c.translate(e.x,e.y);c.scale(s*flip,s);
+  // Retrofuturist crop-duster with two stacked wings and a luminous nose.
+  poly(c,[[-43,1],[-34,-11],[-29,-10],[-26,-1],[32,-4],[43,1],[34,7],[-29,8]],'#d99376',INK,2);
+  poly(c,[[-9,-5],[-19,-22],[-8,-24],[17,-4]],'#b56e62',INK,1.5);
+  poly(c,[[-15,3],[-31,18],[-18,21],[20,6]],'#e6ad86',INK,1.5);
+  line(c,-12,-17,-16,16,'#678b87',2);line(c,7,-8,0,12,'#678b87',2);
+  oval(c,16,-5,9,5,'#afd4ba',INK,1.5);line(c,42,-13,42,15,'#b5ccbb',2);
+  c.globalAlpha=.4;oval(c,43,1,3,18,'#dce5c8');c.globalAlpha=1;oval(c,35,1,5,5,'#ffe1a2');
+  for(let i=0;i<3;i++){const d=(time*70+i*13)%50;c.globalAlpha=(1-d/50)*.23;oval(c,-45-d,4,5+d*.2,3,'#b0cec0');}c.restore();
+}
+
+function bomb(c,e,time) {
+  const s=(e.w||28)/28;
+  c.save();c.translate(e.x,e.y);c.scale(s,s);c.rotate(finite(e.rotation,Math.sin(time+(e.id||0))*.12));
+  glow(c,0,0,28,'#f9ac7a',.17);oval(c,0,0,11,14,'#517a7c',INK,2);rect(c,-9,-5,18,9,'#dc9f78',2);rect(c,-3,-15,6,4,'#a4c2a6',1);
+  poly(c,[[-8,7],[-15,16],[-5,13]],'#b6c8ac',INK,1);poly(c,[[8,7],[15,16],[5,13]],'#b6c8ac',INK,1);
+  oval(c,0,-1,4,4,'#ffe5ad');glow(c,0,-1,12,'#ffcf91',.25+.2*Math.sin(time*8));c.restore();
+}
+
+function entity(c,e,time) {
+  if(!Number.isFinite(e.x)||!Number.isFinite(e.y)||e.dead||e.state==='sheltered'||e.physical==='captured'||e.physical==='dead')return;
+  if(e.kind==='cow')cow(c,e,time);
+  else if(e.kind==='rock')rock(c,e);
+  else if(e.kind==='truck')truck(c,e,time);
+  else if(e.kind==='plane')plane(c,e,time);
+  else if(e.kind==='bomb')bomb(c,e,time);
+  else person(c,e,time);
+}
+
+function telegraphs(c,g,time) {
+  for(const e of g.entities||[]) {
+    if(e.physical!=='grounded'&&e.physical)continue;
+    if(e.state!=='aim'&&e.state!=='committed')continue;
+    const x=e.x,y=e.y-(e.h||30)*.55,progress=clamp(finite(e.attackProgress,.5),0,1);
+    const color=e.kind==='agent'?'#d9a4e6':'#ffc29a';
+    c.save();c.globalAlpha=e.state==='committed'?.65:.25;c.setLineDash([4,7]);line(c,x,y,finite(e.aimX,g.ufo.x),finite(e.aimY,g.ufo.y),color,e.state==='committed'?1.5:1);c.setLineDash([]);c.restore();
+    oval(c,x,y-11,10,10,'#193f49',color,1.2);c.beginPath();c.arc(x,y-11,12,-Math.PI/2,-Math.PI/2+TAU*progress);c.strokeStyle=color;c.lineWidth=2;c.stroke();
+    label(c,e.kind==='agent'?'⌖':'!',x,y-10,color,13);
+  }
+}
+
+function beam(c,g,time,reduced) {
+  const u=g.ufo;if(!u?.beamOn)return;
+  const angle=finite(u.beamAngle),startY=u.y+12;
+  let len=Math.min(450,(WORLD.ground-startY)/Math.max(.3,Math.cos(angle)));
+  // Stop the light at solid scenery using the same centered rectangles as physics.
+  const dx=Math.sin(angle),dy=Math.cos(angle);
+  for(const b of g.buildings||[]) {
+    if(!(b.hp>0))continue;
+    let entry=0,exit=len;
+    for(const [origin,dir,lo,hi] of [[u.x,dx,b.x-b.w/2,b.x+b.w/2],[startY,dy,b.y-b.h/2,b.y+b.h/2]]) {
+      if(Math.abs(dir)<.00001){if(origin<lo||origin>hi){entry=Infinity;break;}continue;}
+      let a=(lo-origin)/dir,z=(hi-origin)/dir;if(a>z)[a,z]=[z,a];entry=Math.max(entry,a);exit=Math.min(exit,z);
+    }
+    if(entry<=exit&&exit>0)len=Math.min(len,Math.max(0,entry));
+  }
+  if(len<0)return;
+  const spread=19+len*.068;
+  const full=finite(u.load)>=finite(u.capacity,30),col=full?'#ffcc8c':'#b5ffd0';
+  c.save();c.translate(u.x,startY);c.rotate(-angle);
+  const grad=c.createLinearGradient(0,0,0,len);grad.addColorStop(0,full?'#ffcf9865':'#b7ffd285');grad.addColorStop(.5,full?'#ffcc8c28':'#93f4bc30');grad.addColorStop(1,full?'#ffd7a312':'#bbffcd10');
+  poly(c,[[-14,0],[14,0],[spread,len],[-spread,len]],grad);
+  const inner=c.createLinearGradient(0,0,0,len);inner.addColorStop(0,'#d8ffe742');inner.addColorStop(1,'#c7ffdc00');poly(c,[[-4,0],[4,0],[20,len],[-20,len]],inner);
+  c.save();c.globalAlpha=.35;line(c,-14,0,-spread,len,col,1);line(c,14,0,spread,len,col,1);c.restore();
+  if(!reduced){for(let i=0;i<13;i++){const t=((i/13-time*.22)%1+1)%1;const half=14+t*(spread-14);const x=(rand(i+50)*2-1)*half;c.globalAlpha=.1+.5*(1-t);line(c,x,t*len,x,t*len+4+t*5,col,1.3);}c.globalAlpha=1;}
+  oval(c,0,len,spread,7,'#aaffc61b',col,1);oval(c,0,len,spread*.63,4,'#ccffd917');c.restore();
+  glow(c,u.x,startY,34,col,.22);
+}
+
+function drawShip(c,x,y,scale=1,time=0) {
+  c.save();c.translate(x,y);c.scale(scale,scale);
+  // The dome is translucent glass, with the pilot visible behind its reflections.
+  glow(c,0,13,44,'#91ffd0',.17);
+  c.beginPath();c.ellipse(0,-4,26,28,0,Math.PI,TAU);c.closePath();
+  const dome=c.createLinearGradient(-20,-30,20,0);dome.addColorStop(0,'#c0edce');dome.addColorStop(.35,'#6faeac');dome.addColorStop(1,'#356c80');c.fillStyle=dome;c.fill();c.strokeStyle=INK;c.lineWidth=2;c.stroke();
+  oval(c,0,-13,10,12,'#a9dba7',INK,1.5);oval(c,-4,-14,3.6,4.8,'#294451');oval(c,4,-14,3.6,4.8,'#294451');line(c,-2,-7,2,-7,'#5f8b76',1);rect(c,-9,-4,18,7,'#5b938e',4);
+  c.save();c.globalAlpha=.6;c.beginPath();c.ellipse(-10,-16,7,13,.4,Math.PI*.8,Math.PI*1.7);c.strokeStyle='#edffe6';c.lineWidth=3;c.stroke();c.restore();
+  oval(c,0,1,44,12,'#93bcb2',INK,2);
+  const top=c.createLinearGradient(0,-8,0,9);top.addColorStop(0,'#e4e9cc');top.addColorStop(.45,'#b9d3bb');top.addColorStop(1,'#629a96');oval(c,0,-1,43,10,top);
+  poly(c,[[-44,1],[-33,12],[-16,17],[18,17],[34,11],[44,1]],'#467f83',INK,2);
+  c.beginPath();c.ellipse(0,1,44,12,0,0,Math.PI);c.strokeStyle='#c6dec2';c.lineWidth=2;c.stroke();
+  oval(c,0,14,16,4,'#1d4c5e','#6ba39c',1.5);oval(c,0,15,9,2.7,'#b8ffcb');
+  for(let i=0;i<5;i++) {const x=-30+i*15,y=6+Math.sin((i/4)*Math.PI)*4;oval(c,x,y,3.6,2.2,i===2?'#e6ffd6':'#c9e8ac');}
+  for(const x of [-34,34]){oval(c,x,0,4,2,'#609992');line(c,x-3,-1,x+2,-1,'#cee3c7',1);}
+  line(c,0,-32,0,-38,'#739b91',1.5);oval(c,0,-39,2.4,2.4,'#e9ad88');
+  c.restore();
+}
+
+function ship(c,u,time,reduced=false) {
+  if(!u)return;
+  c.save();c.translate(u.x,u.y);c.rotate(clamp(finite(u.angle,(u.vx||0)*.0005),-.24,.24));
+  if(u.invulnerable>0){c.globalAlpha=reduced?.9:.78+.22*Math.sin(time*20);oval(c,0,-2,56,37,null,'#d4ffe4',1.5);glow(c,0,0,70,'#a9f9dd',.12);}
+  drawShip(c,0,0,1,time);c.restore();
+  if(u.hp>0&&u.hp<=u.maxHp*.3){glow(c,u.x,u.y,64,CORAL,.12);if(reduced||Math.sin(time*5)>.1)label(c,'HULL CRITICAL',u.x,u.y-60,'#ffb69b',10);}
+}
+
+function projectiles(c,list,time) {
+  for(const p of list||[]) {
+    const a=Math.atan2(p.vy||0,p.vx||1);c.save();c.translate(p.x,p.y);c.rotate(a);
+    if(p.kind==='plasma'||p.kind==='boss') {
+      glow(c,0,0,18,p.kind==='boss'?'#ffd493':'#e5a5f3',.34);const trail=c.createLinearGradient(-24,0,5,0);trail.addColorStop(0,'#c48be400');trail.addColorStop(1,'#db9bea');poly(c,[[-24,-1],[0,-5],[6,0],[0,5],[-24,1]],trail);oval(c,0,0,5,4,'#f6dcff');oval(c,1,-1,2,2,'#fff5ed');
+    } else if(p.kind==='arc') {
+      c.rotate(time*5);line(c,-11,0,9,0,'#ccb98e',2);line(c,6,-4,11,-4,'#e1d7b0',1.5);line(c,6,4,11,4,'#e1d7b0',1.5);line(c,6,-4,6,4,'#e1d7b0',1.5);line(c,6,0,12,0,'#e1d7b0',1.5);
+    } else {line(c,-10,0,2,0,'#f0b77e99',2);line(c,-3,0,3,0,'#fff1bd',3);}
+    c.restore();
+  }
+}
+
+function drawBoss(c,b,time) {
+  if(!b||b.hp<=0)return;
+  const x=b.x,y=b.y,w=b.w||190,h=b.h||340,groundY=y+h/2;
+  const pulse=.65+.35*Math.sin(time*5),vulnerable=!!b.vulnerable;
+  c.save();c.translate(x,groundY);
+  oval(c,0,5,w*.7,12,'#0c243455');
+  // Broad feet and offset pistons anchor a multi-part machine in the world.
+  for(const side of [-1,1]) {
+    rect(c,side*49-20,-105,40,86,'#547476',8,INK,4);rect(c,side*49-11,-97,22,55,'#253f50',4);
+    line(c,side*49-7,-92,side*49-7,-50,'#9db3a1',4);line(c,side*49+7,-92,side*49+7,-50,'#9db3a1',4);
+    oval(c,side*49,-105,27,24,'#748f83',INK,3);oval(c,side*49,-105,12,12,'#d5b27c',INK,2);
+    rect(c,side*50-36,-28,72,28,'#69877f',5,INK,3);rect(c,side*50-32,-11,64,7,'#314e58',2);
+    for(let j=0;j<4;j++)rect(c,side*50-25+j*16,-26,7,9,'#a2b39b',1);
+  }
+  poly(c,[[-64,-121],[-79,-245],[-53,-278],[53,-278],[79,-245],[64,-121]],'#63867f',INK,4);
+  poly(c,[[-64,-121],[-64,-220],[-43,-243],[-43,-136]],'#94a798');poly(c,[[64,-121],[64,-220],[43,-243],[43,-136]],'#385d66');
+  rect(c,-44,-159,88,32,'#304f5c',4,INK,3);for(let i=0;i<6;i++)rect(c,-35+i*13,-151,7,16,'#78948a',1);
+  const coreY=(finite(b.coreY,y-55)-groundY);
+  glow(c,0,coreY,82,vulnerable?'#d6ffbb':'#fc937b',vulnerable?.23*pulse:.12);
+  oval(c,0,coreY,46,46,'#294d5a',INK,3);oval(c,0,coreY,35,35,vulnerable?'#c5efb1':'#6c6264','#9cb9a3',3);
+  if(vulnerable) {
+    oval(c,0,coreY,22,22,'#ecffd0');oval(c,0,coreY,10,10,'#ffffff');
+    for(let j=0;j<8;j++){const a=j*TAU/8+time*.4;line(c,Math.cos(a)*39,coreY+Math.sin(a)*39,Math.cos(a)*45,coreY+Math.sin(a)*45,'#d5ffba',3);}
+    label(c,'CORE EXPOSED',0,-h-34,'#dcffc5',11);
+  } else {
+    for(let j=-1;j<=1;j++)rect(c,-29,coreY+j*13-4,58,8,'#375665',2);oval(c,0,coreY,8,8,'#f4a281');
+  }
+  // Oversized shoulder joints, articulated arms, and rocket-fist warning lamps.
+  for(const side of [-1,1]) {
+    const raised=b.state==='telegraph'||b.state==='charge'||b.state==='volley'||b.state==='attack';
+    const lift=raised?18+Math.sin(time*3)*3:0;
+    oval(c,side*88,-235,31,30,'#8ca294',INK,4);oval(c,side*88,-235,18,18,'#3e6570',INK,2);oval(c,side*88,-235,7,7,'#c3cbb0');
+    const ex=side*115,ey=-168-lift;
+    line(c,side*96,-213,ex,ey,'#233f4c',24);line(c,side*96,-213,ex,ey,'#a0b1a0',11);
+    oval(c,ex,ey,21,22,'#597b7b',INK,3);rect(c,ex-25,ey+12,50,49,'#7b9487',8,INK,3);
+    rect(c,ex-19,ey+23,38,10,raised?'#f9b293':'#bcaa83',2);for(let j=0;j<3;j++)line(c,ex-10+j*10,ey+39,ex-10+j*10,ey+56,'#3e5d62',2);
+    if(raised)glow(c,ex,ey+29,29,CORAL,.2*pulse);
+  }
+  rect(c,-29,-289,58,15,'#2b4c58',3,INK,3);
+  const headY=-h+20;
+  rect(c,-47,headY,94,58,'#8fa896',12,INK,4);rect(c,-39,headY+14,78,20,'#294652',5,INK,2);
+  const eyeColor=b.phase>=3?'#ff9a7f':'#e8c78b';rect(c,-31,headY+21,23,6,eyeColor,2);rect(c,8,headY+21,23,6,eyeColor,2);
+  rect(c,-22,headY+44,44,5,'#45666b',1);line(c,-35,headY+3,-43,headY-17,'#94b5a4',2);oval(c,-44,headY-19,3,3,CORAL);
+  if(b.flash>0){c.globalAlpha=.32;oval(c,0,coreY,57,57,'#fff8dd');c.globalAlpha=1;}
+  const barY=-h-20;rect(c,-75,barY,150,5,'#1e3948',3);rect(c,-75,barY,150*clamp(b.hp/b.maxHp,0,1),5,vulnerable?'#ceefad':'#eaa385',3);
+  c.restore();
+  if((b.state==='telegraph'||b.state==='charge')&&Number.isFinite(b.telegraphX)) {
+    c.save();c.globalAlpha=.5;rect(c,b.telegraphX-38,WORLD.ground-5,76,5,CORAL,2);c.setLineDash([7,8]);line(c,b.telegraphX,80,b.telegraphX,WORLD.ground,CORAL,1);c.restore();
+  }
+}
+
+function warnings(c,g,w,cam,time) {
+  const d=g.director||{};
+  if(!(d.warning>0))return;
+  const y=finite(d.warningY,230),left=d.warningSide==='left'||d.warningSide===-1;
+  const x=left?38:w-38;
+  c.save();
+  c.globalAlpha=.15+.08*Math.sin(time*9);rect(c,0,y-25,w,50,'#f7ba8c');c.setLineDash([12,10]);line(c,0,y,w,y,'#ffc18c',1);c.setLineDash([]);c.globalAlpha=1;
+  rect(c,x-23,y-24,46,48,'#24404d',9,'#edac87',1.5);
+  poly(c,left?[[x-6,y-9],[x+7,y],[x-6,y+9]]:[[x+6,y-9],[x-7,y],[x+6,y+9]],'#ffce9d');
+  const labelX=left?x+37:x-37;
+  label(c,'AIRCRAFT INBOUND',labelX,y-10,'#ffcc9f',10,left?'left':'right');label(c,'CLEAR FLIGHT PATH',labelX,y+7,'#e2bd9d',8,left?'left':'right');
+  c.restore();
+}
+
+function effects(c,g,time) {
+  for(const p of g.particles||[]) {
+    const alpha=clamp(finite(p.life,1)/finite(p.maxLife,1),0,1),size=finite(p.size,3);
+    c.save();c.globalAlpha=alpha;
+    if(size>7)glow(c,p.x,p.y,size*2,p.color||MINT,.25);
+    if(size>3)rect(c,p.x-size*.5,p.y-size*.5,size,size,p.color||MINT,size*.25);
+    else oval(c,p.x,p.y,size,size,p.color||MINT);
+    c.restore();
+  }
+  for(const t of g.texts||[]) {
+    c.save();c.globalAlpha=clamp(finite(t.life,1)*1.5,0,1);c.shadowColor='#17333e';c.shadowBlur=6;label(c,t.text,t.x,t.y,t.color||MINT,t.big?18:11);c.restore();
+  }
+}
+
+function targetMarks(c,g,time) {
+  if(!g.ufo?.beamOn)return;
+  for(const e of g.entities||[]) {
+    if(e.physical!=='lifted')continue;
+    const w=(e.w||20)+8,h=(e.h||30)+8,clr=e.collectible===false?'#f4d5a2':'#cbffd0';
+    c.save();c.globalAlpha=.5+.15*Math.sin(time*5+(e.id||0));
+    for(const sx of [-1,1])for(const sy of [-1,1]){const x=e.x+sx*w/2,y=e.y+sy*h/2;line(c,x,y,x-sx*5,y,clr,1);line(c,x,y,x,y-sy*5,clr,1);}
+    c.restore();
+  }
+}
+
+function render(c,game,opts={}) {
+  if(!c)return;
+  const g=game||{},w=finite(opts.width,1280),h=finite(opts.height,720),time=finite(opts.time,g.time||0),cam=finite(g.camera?.x,finite(g.camera)),theme=g.mission?.theme||'farm';
+  c.save();c.lineCap='round';c.lineJoin='round';
+  const ambientTime=opts.reducedMotion?0:time;
+  sky(c,w,h,cam,ambientTime,theme,opts.menu);
+  ground(c,w,cam,theme,time);
+  c.save();c.translate(-cam,0);
+  for(const b of g.buildings||[]) if(Number.isFinite(b.x)&&Number.isFinite(b.y))drawBarn(c,b,theme,time);
+  const entities=g.entities||[];
+  for(const e of entities)shadow(c,e);
+  if(g.ufo)beam(c,g,time,opts.reducedMotion);
+  telegraphs(c,g,time);
+  // Layer ground objects behind airborne cargo, with stable ordering for clarity.
+  for(const e of entities)if(e.physical!=='lifted'&&e.physical!=='airborne')entity(c,e,time);
+  drawBoss(c,g.boss,ambientTime);
+  for(const e of entities)if(e.physical==='lifted'||e.physical==='airborne')entity(c,e,time);
+  projectiles(c,g.projectiles,time);
+  targetMarks(c,g,ambientTime);
+  ship(c,g.ufo,time,opts.reducedMotion);
+  effects(c,g,time);
+  c.restore();
+  warnings(c,g,w,cam,ambientTime);
+  // Cinematic corner shading stays very light to retain tactical visibility.
+  const vignette=c.createRadialGradient(w*.5,h*.45,w*.25,w*.5,h*.45,w*.72);vignette.addColorStop(0,'#0b243200');vignette.addColorStop(1,'#071b3438');c.fillStyle=vignette;c.fillRect(0,0,w,h);
+  if(opts.menu){const shade=c.createLinearGradient(0,0,w,0);shade.addColorStop(0,'#112e4070');shade.addColorStop(.6,'#112e4000');c.fillStyle=shade;c.fillRect(0,0,w,h);}
+  c.restore();
+}
+
+return {drawShip,render};
+})();
+
+__modules["progression"] = (() => {
+const { EMPTY_UPGRADES, MISSIONS, UPGRADES } = __modules["config"];
+
+/** Local progress is deliberately independent of the browser and simulation. */
+const SAVE_KEY = 'abduction.midnight-harvest.v1';
+const BACKUP_KEY = `${SAVE_KEY}.backup`;
+const MAX_VALUE = 1_000_000_000;
+const maxMission = Math.max(...MISSIONS.map(mission => mission.id));
+const isRecord = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const boundedInteger = (value, fallback = 0, maximum = MAX_VALUE) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(maximum, Math.max(0, Math.floor(value))) : fallback;
+const boundedMultiplier = value => typeof value === 'number' && Number.isFinite(value)
+  ? Math.min(10, Math.max(0, Math.floor(value * 2) / 2)) : 0;
+
+function defaultSave() {
+  return {
+    version: 1,
+    credits: 0,
+    upgrades: { ...EMPTY_UPGRADES },
+    unlocked: 1,
+    completed: [],
+    best: {},
+    settings: { sound: true, difficulty: 'normal', reducedMotion: false },
+    career: { captured: 0, missions: 0 }
+  };
+}
+
+/** Repairs individual fields; unknown future versions are never overwritten by loading. */
+function normalizeSave(value) {
+  if (!isRecord(value)) return null;
+  if (value.version !== undefined && value.version !== 0 && value.version !== 1) return null;
+  // A JSON object unrelated to this game is not a recoverable progress record.
+  if (!['credits', 'upgrades', 'unlocked', 'completed', 'best'].some(key => key in value)) return null;
+  const save = defaultSave();
+  save.credits = boundedInteger(value.credits);
+  for (const upgrade of UPGRADES) {
+    save.upgrades[upgrade.id] = boundedInteger(value.upgrades?.[upgrade.id], 0, upgrade.prices.length);
+  }
+  if (Array.isArray(value.completed)) {
+    save.completed = [...new Set(value.completed.filter(id =>
+      Number.isInteger(id) && MISSIONS.some(mission => mission.id === id)))].sort((a, b) => a - b);
+  }
+  save.unlocked = Math.max(1, boundedInteger(value.unlocked, 1, maxMission),
+    ...save.completed.map(id => Math.min(maxMission, id + 1)));
+  for (const mission of MISSIONS) {
+    const best = value.best?.[mission.id];
+    if (!isRecord(best)) continue;
+    save.best[mission.id] = {
+      score: boundedInteger(best.score),
+      captured: boundedInteger(best.captured),
+      maxCombo: boundedMultiplier(best.maxCombo),
+      objectives: Array.isArray(best.objectives)
+        ? [...new Set(best.objectives.filter(key => mission.goals.some(goal => goal.key === key)))] : []
+    };
+  }
+  if (isRecord(value.settings)) {
+    if (typeof value.settings.sound === 'boolean') save.settings.sound = value.settings.sound;
+    if (typeof value.settings.reducedMotion === 'boolean') save.settings.reducedMotion = value.settings.reducedMotion;
+    if (['easy', 'normal', 'hard'].includes(value.settings.difficulty)) save.settings.difficulty = value.settings.difficulty;
+  }
+  save.career.captured = boundedInteger(value.career?.captured);
+  save.career.missions = boundedInteger(value.career?.missions);
+  return save;
+}
+
+function getStorage(storage) {
+  if (storage !== undefined) return storage;
+  try { return globalThis.localStorage; } catch { return null; }
+}
+
+function readSave(storage, key) {
+  try {
+    const text = storage?.getItem(key);
+    return typeof text === 'string' ? normalizeSave(JSON.parse(text)) : null;
+  } catch { return null; }
+}
+
+/** Falls back to the last valid backup, then fresh progress; never deletes stored data. */
+function loadSave(storage) {
+  const target = getStorage(storage);
+  return readSave(target, SAVE_KEY) ?? readSave(target, BACKUP_KEY) ?? defaultSave();
+}
+
+/** Keep the previous valid save before replacing the main record. Returns false on failure. */
+function persistSave(save, storage) {
+  const target = getStorage(storage);
+  const normalized = normalizeSave(save);
+  if (!target || !normalized) return false;
+  // Loading an older backup is safe; writing over a newer schema is not.
+  const unsupported = key => {
+    let text;
+    try { text = target.getItem(key); } catch { return true; }
+    try {
+      const record = JSON.parse(text);
+      return isRecord(record) && record.version !== undefined && ![0,1].includes(record.version);
+    } catch { return false; }
+  };
+  if (unsupported(SAVE_KEY)) return false;
+  const previous = readSave(target, SAVE_KEY);
+  const backup = previous ?? readSave(target, BACKUP_KEY) ?? normalized;
+  if (!unsupported(BACKUP_KEY)) {
+    try { target.setItem(BACKUP_KEY, JSON.stringify(backup)); } catch { /* Main save may still fit. */ }
+  }
+  try {
+    target.setItem(SAVE_KEY, JSON.stringify(normalized));
+    return true;
+  } catch { return false; }
+}
+
+/** Purchases are immutable and cannot exceed an upgrade's final level. */
+function purchaseUpgrade(previous, id) {
+  const save = normalizeSave(previous) ?? defaultSave();
+  const upgrade = UPGRADES.find(item => item.id === id);
+  if (!upgrade) return { ok: false, reason: 'Unknown upgrade.', save };
+  const level = save.upgrades[id];
+  if (level >= upgrade.prices.length) return { ok: false, reason: 'Fully upgraded.', save };
+  const price = upgrade.prices[level];
+  if (save.credits < price) return { ok: false, reason: 'Not enough credits.', save };
+  save.credits -= price;
+  save.upgrades[id] += 1;
+  return { ok: true, reason: null, save };
+}
+
+/**
+ * Settle one finished run. The app calls this once per results screen.
+ * Engine credits already include processor bonuses. Repeat clears earn the regular
+ * mission and performance rewards; first-clear and optional goal bonuses pay once.
+ */
+function completeMission(previous, game) {
+  const save = normalizeSave(previous) ?? defaultSave();
+  const payout = { collection: 0, mission: 0, objectives: 0, performance: 0, total: 0 };
+  const mission = MISSIONS.find(item => item.id === game?.mission?.id);
+  if (!mission || !['won', 'lost'].includes(game?.status)) {
+    return { save, payout, newUnlock: null, firstClear: false };
+  }
+  const won = game.status === 'won';
+  const stats = isRecord(game.stats) ? game.stats : {};
+  const firstClear = won && !save.completed.includes(mission.id);
+  const priorBest = save.best[mission.id] ?? { score: 0, captured: 0, maxCombo: 0, objectives: [] };
+  const achieved = won ? mission.goals.filter(goal => boundedInteger(stats[goal.key]) >= goal.target) : [];
+  const newlyAchieved = achieved.filter(goal => !priorBest.objectives.includes(goal.key));
+  payout.collection = Math.floor(boundedInteger(stats.credits) * (won ? 1 : 0.5));
+  payout.mission = won ? 400 + mission.id * 150 + (firstClear ? 500 : 0) : 0;
+  payout.objectives = newlyAchieved.length * 350;
+  payout.performance = won ? boundedMultiplier(stats.maxCombo) * 50 : 0;
+  payout.total = payout.collection + payout.mission + payout.objectives + payout.performance;
+  save.credits = boundedInteger(save.credits + payout.total);
+  save.career.captured = boundedInteger(save.career.captured + boundedInteger(stats.captured));
+  save.career.missions = boundedInteger(save.career.missions + 1);
+  save.best[mission.id] = {
+    score: Math.max(priorBest.score, payout.total),
+    captured: Math.max(priorBest.captured, boundedInteger(stats.captured)),
+    maxCombo: Math.max(priorBest.maxCombo, boundedMultiplier(stats.maxCombo)),
+    objectives: [...new Set([...priorBest.objectives, ...achieved.map(goal => goal.key)])]
+  };
+  let newUnlock = null;
+  if (won) {
+    if (firstClear) save.completed = [...save.completed, mission.id].sort((a, b) => a - b);
+    const next = Math.min(maxMission, mission.id + 1);
+    if (next > save.unlocked) {
+      save.unlocked = next;
+      newUnlock = next;
+    }
+  }
+  return { save, payout, newUnlock, firstClear };
+}
+
+return {SAVE_KEY,BACKUP_KEY,defaultSave,loadSave,persistSave,purchaseUpgrade,completeMission};
+})();
+
+__modules["audio"] = (() => {
+class Sound {
+  constructor({createContext, onError}={}) {
+    this.createContext=createContext||(()=>new(window.AudioContext||window.webkitAudioContext)());
+    this.onError=onError||((error)=>console.warn('Game audio is unavailable:',error));
+    this.enabled=true;this.ctx=null;this.master=null;this.beam=null;
+    this.lastShot=-Infinity;this.lastBeamUpdate=-Infinity;this.voices=new Set();this.reported=false;
+  }
+  report(error){if(!this.reported){this.reported=true;this.onError(error);}}
+  unlock(){
+    if(!this.enabled)return;
+    try{
+      if(!this.ctx||this.ctx.state==='closed'){
+        this.ctx=this.createContext();this.master=this.ctx.createGain();this.master.gain.value=.7;
+        this.master.connect(this.ctx.destination);this.beam=null;this.voices.clear();
+      }
+      if(this.ctx.state==='suspended')Promise.resolve(this.ctx.resume()).catch(error=>this.report(error));
+    }catch(error){this.report(error);}
+  }
+  setEnabled(value){this.enabled=Boolean(value);if(!this.enabled)this.stopTransient();}
+  tone(freq,duration=.15,type='sine',volume=.06,end=freq,delay=0){
+    if(!this.enabled||!this.ctx||this.ctx.state==='closed')return;
+    let o,g,voice;
+    try{
+      while(this.voices.size>=16){const oldest=this.voices.values().next().value;oldest.stop();}
+      const t=this.ctx.currentTime+delay;o=this.ctx.createOscillator();g=this.ctx.createGain();
+      let stopped=false;
+      voice={stop:()=>{if(stopped)return;stopped=true;try{o.stop();}catch(error){this.report(error);}o.disconnect();g.disconnect();this.voices.delete(voice);}};
+      o.onended=()=>{o.disconnect();g.disconnect();this.voices.delete(voice);};
+      o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+duration);
+      g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);
+      o.connect(g);g.connect(this.master);this.voices.add(voice);o.start(t);o.stop(t+duration+.02);
+    }catch(error){o?.disconnect();g?.disconnect();if(voice)this.voices.delete(voice);this.report(error);}
+  }
+  play(type){
+    if(!this.enabled)return;this.unlock();if(!this.ctx)return;
+    switch(type){
+      case'capture':this.tone(500,.22,'sine',.08,1100);break;
+      case'hit':this.tone(130,.3,'sawtooth',.05,35);break;
+      case'explosion':this.tone(75,.4,'sawtooth',.06,23);break;
+      case'shot':if(this.ctx.currentTime-this.lastShot>.15){this.tone(250,.09,'triangle',.025,100);this.lastShot=this.ctx.currentTime;}break;
+      case'warning':this.tone(700,.35,'triangle',.045,440);break;
+      case'win':[330,440,550,880].forEach((frequency,n)=>this.tone(frequency,.35,'sine',.06,frequency,n*.14));break;
+      case'lose':this.tone(200,.8,'triangle',.055,50);break;
+      case'buy':this.tone(600,.25,'sine',.06,1200);break;
+      case'throw':this.tone(160,.14,'triangle',.025,65);break;
+      default:this.tone(380,.06,'sine',.025,500);
+    }
+  }
+  setBeam(active){
+    try{this.updateBeam(active);}catch(error){
+      this.beam?.o.disconnect();this.beam?.g.disconnect();this.beam=null;this.report(error);
+    }
+  }
+  updateBeam(active){
+    if(!this.ctx||this.ctx.state==='closed')return;
+    if(active&&this.enabled){
+      if(!this.beam){
+        const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=80;g.gain.value=0;
+        o.connect(g);g.connect(this.master);o.start();this.beam={o,g};this.lastBeamUpdate=-Infinity;
+      }
+      const now=this.ctx.currentTime;
+      if(now-this.lastBeamUpdate>=1/30){
+        this.beam.g.gain.cancelScheduledValues(now);this.beam.g.gain.setTargetAtTime(.035,now,.08);
+        this.beam.o.frequency.cancelScheduledValues(now);this.beam.o.frequency.setTargetAtTime(85+Math.sin(now*4)*12,now,.1);this.lastBeamUpdate=now;
+      }
+    }else if(this.beam){
+      const {o,g}=this.beam;this.beam=null;
+      g.gain.cancelScheduledValues(this.ctx.currentTime);g.gain.setTargetAtTime(0,this.ctx.currentTime,.02);
+      o.onended=()=>{o.disconnect();g.disconnect();};o.stop(this.ctx.currentTime+.12);
+    }
+  }
+  stopTransient(){this.setBeam(false);for(const voice of [...this.voices])voice.stop();}
+  dispose(){
+    this.stopTransient();this.master?.disconnect();
+    if(this.ctx&&this.ctx.state!=='closed')Promise.resolve(this.ctx.close()).catch(error=>this.report(error));
+  }
+}
+
+return {Sound};
+})();
+
+__modules["app"] = (() => {
+const {MISSIONS,UPGRADES} = __modules["config"];
+const {createGame,stepGame} = __modules["sim"];
+const {render} = __modules["render"];
+const {loadSave,persistSave,purchaseUpgrade,completeMission} = __modules["progression"];
+const {Sound} = __modules["audio"];
+
+const $=id=>document.getElementById(id);
+const canvas=$('game'),ctx=canvas.getContext('2d'),screen=$('screen'),hud=$('hud'),modalLayer=$('modal-layer'),wrap=$('game-wrap');
+const fmt=n=>Math.floor(n||0).toLocaleString('en-US');
+let save=loadSave(),scene='home',selected=Math.min(save.unlocked,5),game,paused=false,modal=null,settled=false,seed=Date.now(),toastTimer=0,frameTime=0,accumulator=0,uiTime=0;
+const sound=new Sound({onError:error=>{console.warn('Game audio unavailable:',error);toast('Sound is unavailable on this device. You can keep playing.');}});sound.setEnabled(save.settings.sound);
+const keys=new Set(),pointer={x:640,y:550,active:false,down:false},touch={x:0,y:0,beam:false};
+let keyAim=0,keyboardAim=false,stickPointer=null,beamPointer=null,canvasPointer=null;
+let viewportWidth=1280,frameFailed=false,focusBeforeModal=null,modalParent=null;
+const icons={crystal:'<path d="m18 2 10 12-10 20L8 14Z M8 14h20M18 2v32"/>',beam:'<ellipse cx="18" cy="7" rx="10" ry="4"/><path d="M9 12 3 32m24-20 6 20M14 14l-2 18m10-18 2 18M18 15v17"/>',shield:'<path d="M18 2 31 8v10c0 8-13 16-13 16S5 26 5 18V8Z M18 9v16m-7-10 7-6 7 6"/>',engine:'<path d="m9 24 4-15 5-7 5 7 4 15-9-4Z M13 25v6m5-7v10m5-9v6"/><circle cx="18" cy="12" r="3"/>',processor:'<rect x="6" y="8" width="24" height="21" rx="3"/><path d="M11 2v6m7-6v6m7-6v6M10 15h16M10 22h16m-13 7v5m10-5v5"/>'};
+
+// Opt-in local diagnostics: no telemetry, no work on the normal play path.
+const profiling=Boolean(window.location.search?.includes('audit=1'));
+const profileSamples=[],profilePacing=[];let profileFrames=0,profilePrevious=0,profileOutput=null;
+function recordProfile(started,now){
+  if(!profiling)return;
+  profileSamples.push(performance.now()-started);if(profileSamples.length>240)profileSamples.shift();
+  if(profilePrevious)profilePacing.push(now-profilePrevious);profilePrevious=now;if(profilePacing.length>240)profilePacing.shift();
+  if(++profileFrames%60)return;
+  if(!profileOutput){profileOutput=document.createElement('output');profileOutput.id='audit-metrics';profileOutput.className='audit-metrics';profileOutput.setAttribute('aria-label','Local performance diagnostics');document.body.append(profileOutput);}
+  const sorted=profileSamples.slice().sort((a,b)=>a-b),pacing=profilePacing.slice().sort((a,b)=>a-b);
+  const percentile=(values,p)=>Number((values[Math.floor((values.length-1)*p)]||0).toFixed(2));
+  profileOutput.textContent=JSON.stringify({scene,paused,viewportWidth,backing:[canvas.width,canvas.height],samples:sorted.length,
+    frameCpuP50Ms:percentile(sorted,.5),frameCpuP95Ms:percentile(sorted,.95),frameIntervalP50Ms:percentile(pacing,.5),frameIntervalP95Ms:percentile(pacing,.95),
+    entities:game?.entities.length||0,projectiles:game?.projectiles.length||0,particles:game?.particles.length||0,voices:sound.voices.size});
+}
+
+function storeSave(){const ok=persistSave(save);if(!ok)toast('Storage unavailable. Progress lasts for this visit.');updateHeader();return ok;}
+function updateHeader(){$('balance').innerHTML=`<span>◈</span> <b>${fmt(save.credits)}</b>`;$('sound-button').textContent=save.settings.sound?'♪':'♩';$('sound-button').ariaLabel=save.settings.sound?'Mute sound':'Enable sound';$('sound-button').title=save.settings.sound?'Sound on':'Sound off';}
+function toast(message){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').classList.remove('hidden');toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
+function resetInput(){
+  keys.clear();pointer.down=false;touch.x=touch.y=0;touch.beam=false;
+  const captures=[[$('touch-stick'),stickPointer],[$('touch-beam'),beamPointer],[canvas,canvasPointer]];
+  stickPointer=beamPointer=canvasPointer=null;
+  for(const [element,id] of captures)if(id!==null&&element.hasPointerCapture?.(id))element.releasePointerCapture(id);
+  $('touch-stick').firstElementChild.style.transform='';
+}
+function isolateModal(active){
+  screen.inert=active;hud.inert=active;
+  for(const element of document.querySelectorAll('.topbar,.underbar,.below-game,.page-footer'))element.inert=active;
+}
+function focusModal(){
+  const expected=modal;
+  requestAnimationFrame(()=>{if(modal===expected)modalLayer.querySelector('button,select,input')?.focus();});
+}
+function makeBackdrop(){game=createGame({mission:MISSIONS[0],upgrades:save.upgrades,seed:417});game.ufo.x=Math.min(610,2400-viewportWidth)+viewportWidth*.72;game.ufo.y=270;game.ufo.beamAngle=.13;game.ufo.beamOn=true;game.camera=Math.min(610,2400-viewportWidth);}
+function setScene(next){scene=next;paused=false;settled=false;modal=null;modalLayer.classList.add('hidden');isolateModal(false);modalParent=null;resetInput();sound.stopTransient();hud.classList.toggle('hidden',next!=='playing');screen.classList.toggle('hidden',next==='playing');wrap.classList.toggle('playing',next==='playing');$('footer-status').textContent=next==='playing'?'SHIFT IN PROGRESS. MAKE IT COUNT.':'SHIP ONLINE. EARTH UNSUSPECTING.';}
+function showHome(){setScene('home');makeBackdrop();screen.innerHTML=`<div class="home"><div class="eyebrow"><span class="status-dot"></span> EARTH IS OPEN FOR BUSINESS</div><h1>ABDUCTION<span>MIDNIGHT HARVEST</span></h1><div class="edition">A SMALL SHIP. A BIG APPETITE.</div><p>Clock in. Beam up. Cash out.<br>Take the night shift on a planet that really,<br>really doesn’t want you here.</p><div class="home-actions"><button class="primary" data-action="missions">${save.completed.length?'Continue campaign':'Let’s make contact'} <span class="arrow">↗</span></button><button class="text-button" data-action="how">How to play <span>↗</span></button></div><div class="home-meta"><span><i>◆</i> 5 MISSIONS</span><span><i>◆</i> ONE VERY USEFUL BEAM</span><span><i>◆</i> ZERO PERMISSION</span></div></div><div class="signal-label"><span class="status-dot"></span> SIGNAL ESTABLISHED</div><div class="location-tag">SOMEWHERE ON EARTH<span>03:47 AM / THE LOCALS ARE ASLEEP. MOSTLY.</span></div>`;}
+function missionArt(m){return `<div class="mission-art theme-${m.theme}"><i class="moon"></i><i class="building"></i><span class="sector-number">0${m.id}</span></div>`;}
+function showMissions(){setScene('missions');screen.innerHTML=`<div class="menu-panel"><div class="menu-head"><div><span class="eyebrow">YOUR NEXT BAD IDEA</span><h2>Choose a landing zone.</h2></div><div class="menu-tabs"><button class="secondary" data-action="hangar">Upgrade ship <span>↗</span></button><button class="back-button" data-action="home">← Back</button></div></div><div class="mission-grid">${MISSIONS.map(m=>`<button class="mission-card ${selected===m.id?'selected':''}" data-action="select" data-id="${m.id}" ${m.id>save.unlocked?'disabled':''} aria-label="Mission ${m.id}: ${m.title}${m.id>save.unlocked?', locked':''}">${missionArt(m)}<div class="mission-card-content"><span class="eyebrow">${m.boss?'FINAL ENCOUNTER':`${m.duration} SECOND SHIFT`}</span><h3>${m.title}</h3><span class="card-status">${m.id>save.unlocked?'⌑ LOCKED':save.completed.includes(m.id)?'✓ SHIFT COMPLETED':'↗ READY FOR CONTACT'}</span></div></button>`).join('')}</div><div class="mission-detail" id="mission-detail"></div></div>`;updateMissionDetail();}
+function updateMissionDetail(){const m=MISSIONS[selected-1];$('mission-detail').innerHTML=`<div><p>${m.brief}</p><div class="optional-goals">${m.goals.map(g=>`<span>${save.best[m.id]?.objectives?.includes(g.key)?'✓':'◇'} ${g.label} <b>+350</b></span>`).join('')}</div></div><button class="primary" data-action="brief">Launch shift <span class="arrow">↗</span></button>`;}
+function showBrief(){setScene('brief');const m=MISSIONS[selected-1];screen.innerHTML=`<div class="menu-panel"><button class="back-button" data-action="missions">← Landing zones</button><div class="brief-content"><span class="eyebrow">${m.subtitle}</span><h2>${m.title}</h2><p>${m.brief}</p><div class="brief-instruction">${m.boss?'<b>RETURN TO SENDER</b><br>Wait for the core to glow. Drop rocks or spent charges onto it.':'<b>SURVIVE THE SHIFT OR CLEAR THE AREA</b><br>Hold the beam to collect specimens. Rocks stay beneath your ship.<br>Release above an attacker to turn cargo into a weapon.'}</div><div class="brief-actions"><button class="primary" data-action="start">${m.boss?'Meet ATLAS':'Start the night shift'} <span class="arrow">↗</span></button><button class="secondary" data-action="settings">${save.settings.difficulty==='easy'?'Relaxed':save.settings.difficulty==='hard'?'Overtime':'Standard'} difficulty</button></div><p class="save-message">Progress saves after every shift and upgrade. Your next mission unlocks on a win.</p></div></div>`;}
+function showHangar(){setScene('hangar');screen.innerHTML=`<div class="menu-panel"><div class="menu-head"><div><span class="eyebrow">EMPLOYEE BENEFITS</span><h2>A better class of flying saucer.</h2></div><button class="back-button" data-action="missions">← Landing zones</button></div><div class="upgrade-grid">${UPGRADES.map(u=>{const level=save.upgrades[u.id],price=u.prices[level];return `<article class="upgrade-card"><div class="upgrade-icon"><svg viewBox="0 0 36 36" aria-hidden="true">${icons[u.icon]}</svg></div><h3>${u.name}</h3><p>${u.description}</p><div class="upgrade-levels" aria-label="Level ${level} of ${u.prices.length}">${u.prices.map((_,i)=>`<i class="${i<level?'filled':''}"></i>`).join('')}</div><button data-action="buy" data-id="${u.id}" ${price===undefined||save.credits<price?'disabled':''}>${price===undefined?'FULLY UPGRADED':`◈ ${fmt(price)} · UPGRADE`}</button></article>`;}).join('')}</div><p class="hangar-note">New hardware takes effect on your next shift. Replay missions to earn more credits and collect optional bonuses.</p></div>`;}
+function openModal(kind){if(!modal)focusBeforeModal=document.activeElement;modalParent=modal==='pause'&&kind!=='pause'?'pause':null;resetInput();sound.stopTransient();if(scene==='playing')paused=true;modal=kind;isolateModal(true);modalLayer.classList.remove('hidden');if(kind==='pause'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">TAKE FIVE, SPACE CADET</span><h2>Shift paused.</h2><div class="button-stack"><button class="primary" data-action="resume">Back to the harvest <span>↗</span></button><button class="secondary" data-action="how">Flight manual</button><button class="secondary" data-action="settings">Settings</button><button class="text-button" data-action="restart-confirm">Restart this shift</button><button class="text-button" data-action="exit-confirm">Return to landing zones</button></div></div>`;}else if(kind==='how'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">EMPLOYEE ORIENTATION</span><h2>Make yourself at home.</h2><dl class="controls-list"><dt><kbd>W A S D</kbd> / <kbd>ARROWS</kbd></dt><dd>Fly in any direction</dd><dt><kbd>MOUSE</kbd></dt><dd>Aim below the ship</dd><dt><kbd>CLICK</kbd> / <kbd>SPACE</kbd></dt><dd>Hold to lift and collect</dd><dt><kbd>RELEASE</kbd></dt><dd>Drop everything you carry</dd><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Aim without a mouse</dd><dt><kbd>ESC</kbd> / <kbd>P</kbd></dt><dd>Pause the shift</dd></dl><p>People and cows become cargo credits. Rocks, vehicles, and charges stay under your ship: carry them as cover, then drop them onto enemies. Lift an attacker to cancel its shot.</p><p>Watch the beam load. Heavy cargo can block specimens. Buildings block shots. Aircraft always announce their flight path.</p><p>On touchscreens, use the left thumb pad to fly and hold BEAM to lift directly below you.</p><button class="primary" data-action="close">Got it. Let’s fly. <span>↗</span></button></div>`;}else if(kind==='settings'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">FLIGHT PREFERENCES</span><h2>Your kind of chaos.</h2><label class="setting-row"><span>Difficulty<small>Applies to your next shift</small></span><select id="difficulty-select"><option value="easy" ${save.settings.difficulty==='easy'?'selected':''}>Relaxed</option><option value="normal" ${save.settings.difficulty==='normal'?'selected':''}>Standard</option><option value="hard" ${save.settings.difficulty==='hard'?'selected':''}>Overtime</option></select></label><label class="setting-row"><span>Sound effects</span><input id="sound-check" type="checkbox" ${save.settings.sound?'checked':''}></label><label class="setting-row"><span>Reduced motion<small>Less shake and visual movement</small></span><input id="motion-check" type="checkbox" ${save.settings.reducedMotion?'checked':''}></label><p class="save-message">Saved on this browser. No account needed. Progress stays on this device.</p><button class="primary" data-action="close">All set <span>✓</span></button></div>`;}focusModal();}
+function closeModal(){
+  if(!modal)return;
+  if(modal==='confirm'||modalParent==='pause'){openModal('pause');return;}
+  const was=modal;modal=null;modalParent=null;isolateModal(false);modalLayer.classList.add('hidden');
+  if(scene==='playing'){paused=false;resetInput();canvas.focus({preventScroll:true});}
+  else if(scene==='brief'&&was==='settings')showBrief();
+  else if(focusBeforeModal?.isConnected)focusBeforeModal.focus({preventScroll:true});
+}
+function confirmRunAction(action){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">LEAVING SO SOON?</span><h2>${action==='restart'?'Start this shift over?':'Clock out early?'}</h2><p>This shift’s unbanked earnings will be lost. Your saved credits and upgrades are safe.</p><div class="button-stack"><button class="primary" data-action="${action}">${action==='restart'?'Restart shift':'Return to landing zones'}</button><button class="secondary" data-action="pause">Keep this shift</button></div></div>`;modal='confirm';modalParent=null;focusModal();}
+function startGame(){setScene('playing');sound.unlock();game=createGame({mission:MISSIONS[selected-1],upgrades:{...save.upgrades},difficulty:save.settings.difficulty,seed:++seed});game.viewportWidth=viewportWidth;pointer.active=false;keyAim=0;keyboardAim=false;accumulator=0;settled=false;$('hud-sector').textContent=game.mission.subtitle;$('hud-title').textContent=game.mission.title;updateHUD();canvas.focus();}
+function showResults(){if(settled)return;settled=true;resetInput();sound.setBeam(false);const won=game.status==='won',result=completeMission(save,game);save=result.save;const stored=storeSave();scene='results';paused=false;hud.classList.add('hidden');screen.classList.remove('hidden');wrap.classList.remove('playing');const m=game.mission,completed=won&&m.id===5;const messages=completed?'ATLAS is down. Earth has filed a formal complaint. Your employer has framed it. Replay any shift and finish the optional contracts.':won?'Another successful night of questionable business. Your earnings are banked. Give your ship an upgrade before the next shift.':'The locals got the last word this time. Half your collection earnings are banked. Upgrade your ship or give this shift another go.';screen.innerHTML=`<div class="results"><div><span class="eyebrow">${completed?'CAMPAIGN COMPLETE':won?'SHIFT COMPLETE':'SHIP RECOVERED'}</span><h2>${completed?'Employee of<br>the galaxy.':won?'A very<br>productive night.':'A small<br>workplace incident.'}</h2><p>${messages}</p><div class="result-totals"><div><strong>${fmt(game.stats.captured)}</strong><span>SPECIMENS</span></div><div><strong>×${Math.max(1,game.stats.maxCombo||1)}</strong><span>BEST MULTIPLIER</span></div></div><div>${m.goals.map(g=>`<div class="goal-result ${(game.stats[g.key]||0)>=g.target?'done':''}"><span>${(game.stats[g.key]||0)>=g.target?'✓':'◇'}</span>${g.label} (${Math.min(game.stats[g.key]||0,g.target)}/${g.target})</div>`).join('')}</div></div><div><div class="payout-card"><h3>THE NIGHT’S TAKINGS</h3><div class="payout-row"><span>Collection ${won?'':'(50% recovered)'}</span><strong>◈ ${fmt(result.payout.collection)}</strong></div><div class="payout-row"><span>Mission ${result.firstClear?'& first clear':''}</span><strong>◈ ${fmt(result.payout.mission)}</strong></div><div class="payout-row"><span>New optional contracts</span><strong>◈ ${fmt(result.payout.objectives)}</strong></div><div class="payout-row"><span>Performance bonus</span><strong>◈ ${fmt(result.payout.performance)}</strong></div><div class="payout-row total"><span>Total earned</span><strong>◈ ${fmt(result.payout.total)}</strong></div></div><div class="results-actions"><button class="primary" data-action="${won?'hangar':'start'}">${won?'Upgrade ship':'Try again'} <span>↗</span></button><button class="secondary" data-action="missions">Landing zones</button></div>${result.newUnlock?`<p class="save-message">✓ Sector 0${result.newUnlock} unlocked. ${stored?'Your progress is saved.':'Progress is held for this visit.'}</p>`:`<p class="save-message">${stored?'Your earnings and progress are saved.':'Storage unavailable. Earnings are held for this visit.'}</p>`}</div></div>`;$('footer-status').textContent=completed?'ALL SHIFTS COMPLETE. NICE WORK, SPACE CADET.':'SHIFT CLOSED. EARNINGS BANKED.';if(result.newUnlock)selected=result.newUnlock;}
+function updateHUD(){if(!game)return;const u=game.ufo;const seconds=Math.ceil(Math.max(0,game.remaining));$('hud-time').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;$('shield-text').textContent=`${Math.ceil(u.hp)} / ${u.maxHp}`;$('shield-meter').style.width=`${100*Math.max(0,u.hp)/u.maxHp}%`;$('shield-meter').style.background=u.hp/u.maxHp<.3?'#f99c81':'#c3f59b';$('load-text').textContent=`${Math.round(u.load)} / ${u.capacity}`;$('load-meter').style.width=`${Math.min(100,100*u.load/u.capacity)}%`;$('capture-count').textContent=String(game.stats.captured).padStart(2,'0');$('combo').textContent=`×${Math.max(1,game.stats.combo||1)}`;$('beam-feedback').textContent=game.beamFeedback||(u.beamOn?'TRACTOR BEAM ACTIVE':'HOLD TO COLLECT');const t=game.time;let tip='';if(game.mission.id===1){if(t<7)tip='WASD or arrows to fly · Mouse to aim · Hold click or SPACE to collect';else if(t<14)tip='Get close to the ground. Line up a specimen beneath your beam.';else if(t<22&&game.stats.captured<2)tip='Hold your beam steady until a specimen reaches the saucer.';else if(t>22&&t<30)tip='Rocks stay in your beam. Release above defenders to drop a weapon.';}if(game.mission.boss&&t<13)tip='Catch spent charges or lift rocks. Drop them onto the glowing core.';if(game.director.warning)tip='⚠ AIRCRAFT INCOMING — watch the marked flight path';$('tutorial-tip').textContent=tip;}
+
+document.addEventListener('click',e=>{const button=e.target.closest('[data-action]');if(!button||button.disabled)return;sound.unlock();const action=button.dataset.action;switch(action){case'home':showHome();break;case'missions':showMissions();break;case'select':selected=Number(button.dataset.id);showMissions();break;case'brief':showBrief();break;case'how':openModal('how');break;case'settings':openModal('settings');break;case'hangar':showHangar();break;case'start':case'restart':startGame();break;case'buy':{const r=purchaseUpgrade(save,button.dataset.id);if(r.ok){save=r.save;storeSave();showHangar();sound.play('buy');toast('Upgrade installed. Ready for your next shift.');}else toast(r.reason);break;}case'pause':openModal('pause');break;case'resume':case'close':closeModal();break;case'restart-confirm':confirmRunAction('restart');break;case'exit-confirm':confirmRunAction('exit');break;case'exit':showMissions();break;case'reload':window.location.reload();break;}sound.play('ui');});
+document.addEventListener('change',e=>{if(e.target.id==='difficulty-select')save.settings.difficulty=e.target.value;else if(e.target.id==='sound-check'){save.settings.sound=e.target.checked;sound.setEnabled(e.target.checked);sound.unlock();}else if(e.target.id==='motion-check')save.settings.reducedMotion=e.target.checked;else return;storeSave();});
+$('sound-button').addEventListener('click',()=>{save.settings.sound=!save.settings.sound;sound.setEnabled(save.settings.sound);sound.unlock();storeSave();});
+$('settings-button').addEventListener('click',()=>openModal('settings'));
+$('pause-button').addEventListener('click',()=>openModal('pause'));
+$('brand').addEventListener('click',e=>{e.preventDefault();if(scene==='playing'){openModal('pause');confirmRunAction('exit');}else showHome();});
+$('fullscreen-button').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(wrap.requestFullscreen)await wrap.requestFullscreen();else toast('Use your browser’s fullscreen control.');}catch{toast('Fullscreen is unavailable in this browser.');}});
+function pointerPosition(e){
+  const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;
+  pointer.x=(e.clientX-r.left)*viewportWidth/r.width;pointer.y=(e.clientY-r.top)*720/r.height;pointer.active=true;keyboardAim=false;
+}
+canvas.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')pointerPosition(e);});
+canvas.addEventListener('pointerdown',e=>{
+  if(scene!=='playing'||paused||e.button!==0||canvasPointer!==null)return;
+  e.preventDefault();sound.unlock();pointerPosition(e);pointer.down=true;canvasPointer=e.pointerId;canvas.setPointerCapture?.(e.pointerId);
+});
+function releaseCanvas(e){if(e.pointerId!==canvasPointer)return;pointer.down=false;canvasPointer=null;}
+for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,releaseCanvas);
+window.addEventListener('pointerup',releaseCanvas);
+
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+window.addEventListener('keydown',e=>{
+  const k=e.key.toLowerCase();
+  if(modal&&k==='tab'){
+    const focusables=[...modalLayer.querySelectorAll('button:not([disabled]),select,input,[tabindex="0"]')];
+    const first=focusables[0],last=focusables.at(-1),active=document.activeElement;
+    if(first&&((e.shiftKey&&(active===first||!modalLayer.contains(active)))||(!e.shiftKey&&(active===last||!modalLayer.contains(active))))){e.preventDefault();(e.shiftKey?last:first).focus();}
+    return;
+  }
+  if(k==='escape'&&(modal||scene==='playing')){
+    e.preventDefault();if(!e.repeat){if(modal)closeModal();else openModal('pause');}return;
+  }
+  if(e.target.matches('button,a,input,select,textarea,[contenteditable="true"]')||e.ctrlKey||e.metaKey||e.altKey)return;
+  if(k==='p'&&!e.repeat){if(modal)closeModal();else if(scene==='playing')openModal('pause');return;}
+  if(scene==='playing'&&!paused){
+    if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
+    keys.add(k);if((k==='q'||k==='e')&&!keyboardAim){keyAim=game.ufo.beamAngle;keyboardAim=true;}if(k===' ')sound.unlock();
+  }
+});
+
+window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+function autoPause(){resetInput();if(scene==='playing'&&!paused)openModal('pause');}
+window.addEventListener('blur',autoPause);document.addEventListener('visibilitychange',()=>{if(document.hidden)autoPause();});
+$('touch-stick').addEventListener('pointerdown',e=>{if(scene!=='playing'||paused||stickPointer!==null)return;e.preventDefault();stickPointer=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);moveStick(e);sound.unlock();});
+function moveStick(e){if(stickPointer!==e.pointerId)return;const r=$('touch-stick').getBoundingClientRect(),dx=(e.clientX-r.left-r.width/2)/32,dy=(e.clientY-r.top-r.height/2)/32,len=Math.max(1,Math.hypot(dx,dy));touch.x=dx/len;touch.y=dy/len;$('touch-stick').firstElementChild.style.transform=`translate(${touch.x*25}px,${touch.y*25}px)`;}
+$('touch-stick').addEventListener('pointermove',moveStick);for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('touch-stick').addEventListener(ev,e=>{if(e.pointerId!==stickPointer)return;stickPointer=null;touch.x=touch.y=0;$('touch-stick').firstElementChild.style.transform='';});
+$('touch-beam').addEventListener('pointerdown',e=>{if(scene!=='playing'||paused||beamPointer!==null)return;e.preventDefault();beamPointer=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);touch.beam=true;pointer.active=false;keyboardAim=false;sound.unlock();});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('touch-beam').addEventListener(ev,e=>{if(e.pointerId!==beamPointer)return;touch.beam=false;beamPointer=null;});
+function frameUnsafe(now){const started=profiling?performance.now():0;const elapsed=Math.min((now-frameTime)/1000||0,.1);frameTime=now;uiTime+=elapsed;if(scene==='playing'&&!paused){accumulator+=elapsed;while(accumulator>=1/60){let mx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0)+touch.x,my=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)+touch.y;keyAim=Math.max(-.698,Math.min(.698,keyAim+((keys.has('e')?1:0)-(keys.has('q')?1:0))/60));const aimX=keyboardAim?game.ufo.x+Math.sin(keyAim)*400:pointer.active?pointer.x+game.camera:game.ufo.x,aimY=keyboardAim?game.ufo.y+Math.cos(keyAim)*400:pointer.active?pointer.y:game.ufo.y+400;stepGame(game,{moveX:Math.max(-1,Math.min(1,mx)),moveY:Math.max(-1,Math.min(1,my)),aimX,aimY,beam:pointer.down||keys.has(' ')||touch.beam},1/60);for(const event of game.events.splice(0))sound.play(event.type);accumulator-=1/60;if(game.status!=='playing'){showResults();break;}}sound.setBeam(scene==='playing'&&game.ufo.beamOn);if(uiTime>.09){updateHUD();uiTime=0;}}if(game){ctx.setTransform(canvas.width/viewportWidth,0,0,canvas.height/720,0,0);render(ctx,game,{width:viewportWidth,height:720,time:scene==='home'?now/1000:game.time,reducedMotion:save.settings.reducedMotion,menu:scene!=='playing'});}recordProfile(started,now);requestAnimationFrame(frame);}
+function frame(now){if(frameFailed)return;try{frameUnsafe(now);}catch(error){reportFatal(error);}}
+function reportFatal(error){
+  if(frameFailed)return;frameFailed=true;console.error('Game runtime failure:',error);
+  resetInput();sound.stopTransient();isolateModal(false);modal=null;modalLayer.classList.add('hidden');
+  hud.classList.add('hidden');screen.classList.remove('hidden');scene='error';
+  screen.innerHTML='<div class="menu-panel brief-content"><span class="eyebrow">FLIGHT SYSTEM UNAVAILABLE</span><h2>Unable to continue this shift.</h2><p>Your banked progress is safe. Reload to restart. If this repeats, keep the browser console error for troubleshooting.</p><button class="primary" data-action="reload">Reload game</button></div>';
+}
+function resizeCanvas(){
+  const r=wrap.getBoundingClientRect(),width=Math.max(1,wrap.clientWidth||r.width),height=Math.max(1,wrap.clientHeight||r.height);
+  viewportWidth=Math.max(480,Math.min(2400,Math.round(720*width/height)));
+  const cssWidth=Math.min(width,height*viewportWidth/720),cssHeight=cssWidth*720/viewportWidth;
+  const scale=Math.min(2,Math.max(1,cssHeight*(window.devicePixelRatio||1)/720));
+  const backingWidth=Math.round(viewportWidth*scale),backingHeight=Math.round(720*scale);
+  if(canvas.width!==backingWidth)canvas.width=backingWidth;if(canvas.height!==backingHeight)canvas.height=backingHeight;
+  canvas.style.width=`${cssWidth}px`;canvas.style.height=`${cssHeight}px`;
+  if(game){game.viewportWidth=viewportWidth;game.camera=Math.max(0,Math.min(game.camera,2400-viewportWidth));
+    if(scene==='home'){game.camera=Math.min(610,2400-viewportWidth);game.ufo.x=game.camera+viewportWidth*.72;}}
+}
+if(typeof ResizeObserver==='function')new ResizeObserver(resizeCanvas).observe(wrap);
+window.addEventListener('resize',resizeCanvas);
+canvas.addEventListener('contextlost',e=>{e.preventDefault();autoPause();toast('Graphics paused. Waiting for the display to recover.');});
+canvas.addEventListener('contextrestored',()=>{resizeCanvas();toast('Display restored. Resume when ready.');});
+window.addEventListener('pagehide',()=>sound.dispose());
+
+if(ctx){updateHeader();showHome();resizeCanvas();requestAnimationFrame(frame);}else reportFatal(new Error('Canvas 2D is unavailable in this browser.'));
+
+return {};
+})();
+
+</script>
+</body>
+</html>

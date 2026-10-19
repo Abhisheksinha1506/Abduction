@@ -1,0 +1,12 @@
+.DS_Store
+node_modules/
+*.tar
+*.tar.gz
+.openai/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+__pycache__/
+release/*.tmp

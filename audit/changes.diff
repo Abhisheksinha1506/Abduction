@@ -1,0 +1,1467 @@
+--- a/package.json
++++ b/package.json
+@@ -1 +1,16 @@
+-{"name":"abduction-midnight-harvest","version":"1.0.0","private":true,"type":"module","scripts":{"test":"node --test tests/*.test.mjs","start":"python3 -m http.server 4173 --bind 127.0.0.1 --directory dist","package":"node scripts/package.mjs"}}
++{
++  "name": "abduction-midnight-harvest",
++  "version": "1.0.1",
++  "private": true,
++  "type": "module",
++  "scripts": {
++    "test": "node --test tests/*.test.mjs",
++    "start": "python3 -m http.server 4173 --bind 127.0.0.1 --directory dist",
++    "package": "node scripts/package.mjs",
++    "profile": "node --expose-gc scripts/profile.mjs",
++    "archive": "python3 scripts/archive.py"
++  },
++  "engines": {
++    "node": ">=18"
++  }
++}
+--- a/README.md
++++ b/README.md
+@@ -35,14 +35,22 @@
+ 
+ Run `npm test` for simulation and progression checks. The simulation is deterministic for a given seed and input sequence and uses a fixed 60 Hz update with seconds-based timers.
+ 
++Release 1.0.1 was audited on 19 October 2026. See [AUDIT_REPORT.md](AUDIT_REPORT.md) for the detailed defect tracker, reproducible tests, browser evidence, CPU/heap measurements, and remaining verification limits. The regression suite now includes physics, navigation, client input, audio lifecycle, save protection, and actual standalone packaging checks.
++
++Run `npm run profile` for the repeatable 30-mission CPU/heap scenario. Run `npm run package` and then `npm run archive` to regenerate the HTML edition and verified source ZIP. Node 18+ is needed for development tools; Python 3 is used for the local server and source archive. Neither is needed to play the standalone file.
++
++Development browser diagnostics are available with `?audit=1`; they stay off during ordinary play and transmit no telemetry. Native fullscreen, physical touch/audio devices, graphics context loss, cross-browser behavior, and direct file-scheme opening have the verification limits documented in the audit report.
++
+ ## Layout
+ 
+ - `dist/sim.js`: movement, beam physics, entities, enemy behavior, encounter director, boss, scoring.
++- `dist/collision.js`: continuous AABB sweeps, overlap recovery, world contact and support queries.
+ - `dist/render.js`: original procedural Canvas art, animation, effects, warnings.
+ - `dist/app.js`: screens, campaign UI, input, fixed-step loop, results.
+ - `dist/progression.js`: save validation, backups, purchases, reward calculation.
+ - `dist/audio.js`: synthesized sound effects and tractor hum.
+ - `dist/config.js`: mission and upgrade balance.
+ - `tests/`: automated interaction and progression checks.
++- `audit/`: structured issue tracker, test evidence, profiles and browser screenshots.
+ 
+ All game logic and artwork run locally. Web fonts are optional; system fallbacks work without a network. This is an original implementation rather than a literal port of archived ActionScript or assets. Monetization, advertising, platform stores, cloud saves, and online leaderboards are not included.
+--- a/dist/app.js
++++ b/dist/app.js
+@@ -8,51 +8,138 @@
+ const canvas=$('game'),ctx=canvas.getContext('2d'),screen=$('screen'),hud=$('hud'),modalLayer=$('modal-layer'),wrap=$('game-wrap');
+ const fmt=n=>Math.floor(n||0).toLocaleString('en-US');
+ let save=loadSave(),scene='home',selected=Math.min(save.unlocked,5),game,paused=false,modal=null,settled=false,seed=Date.now(),toastTimer=0,frameTime=0,accumulator=0,uiTime=0;
+-const sound=new Sound();sound.setEnabled(save.settings.sound);
++const sound=new Sound({onError:error=>{console.warn('Game audio unavailable:',error);toast('Sound is unavailable on this device. You can keep playing.');}});sound.setEnabled(save.settings.sound);
+ const keys=new Set(),pointer={x:640,y:550,active:false,down:false},touch={x:0,y:0,beam:false};
+-let keyAim=0,keyboardAim=false;
++let keyAim=0,keyboardAim=false,stickPointer=null,beamPointer=null,canvasPointer=null;
++let viewportWidth=1280,frameFailed=false,focusBeforeModal=null,modalParent=null;
+ const icons={crystal:'<path d="m18 2 10 12-10 20L8 14Z M8 14h20M18 2v32"/>',beam:'<ellipse cx="18" cy="7" rx="10" ry="4"/><path d="M9 12 3 32m24-20 6 20M14 14l-2 18m10-18 2 18M18 15v17"/>',shield:'<path d="M18 2 31 8v10c0 8-13 16-13 16S5 26 5 18V8Z M18 9v16m-7-10 7-6 7 6"/>',engine:'<path d="m9 24 4-15 5-7 5 7 4 15-9-4Z M13 25v6m5-7v10m5-9v6"/><circle cx="18" cy="12" r="3"/>',processor:'<rect x="6" y="8" width="24" height="21" rx="3"/><path d="M11 2v6m7-6v6m7-6v6M10 15h16M10 22h16m-13 7v5m10-5v5"/>'};
++
++// Opt-in local diagnostics: no telemetry, no work on the normal play path.
++const profiling=Boolean(window.location.search?.includes('audit=1'));
++const profileSamples=[],profilePacing=[];let profileFrames=0,profilePrevious=0,profileOutput=null;
++function recordProfile(started,now){
++  if(!profiling)return;
++  profileSamples.push(performance.now()-started);if(profileSamples.length>240)profileSamples.shift();
++  if(profilePrevious)profilePacing.push(now-profilePrevious);profilePrevious=now;if(profilePacing.length>240)profilePacing.shift();
++  if(++profileFrames%60)return;
++  if(!profileOutput){profileOutput=document.createElement('output');profileOutput.id='audit-metrics';profileOutput.className='audit-metrics';profileOutput.setAttribute('aria-label','Local performance diagnostics');document.body.append(profileOutput);}
++  const sorted=profileSamples.slice().sort((a,b)=>a-b),pacing=profilePacing.slice().sort((a,b)=>a-b);
++  const percentile=(values,p)=>Number((values[Math.floor((values.length-1)*p)]||0).toFixed(2));
++  profileOutput.textContent=JSON.stringify({scene,paused,viewportWidth,backing:[canvas.width,canvas.height],samples:sorted.length,
++    frameCpuP50Ms:percentile(sorted,.5),frameCpuP95Ms:percentile(sorted,.95),frameIntervalP50Ms:percentile(pacing,.5),frameIntervalP95Ms:percentile(pacing,.95),
++    entities:game?.entities.length||0,projectiles:game?.projectiles.length||0,particles:game?.particles.length||0,voices:sound.voices.size});
++}
+ 
+ function storeSave(){const ok=persistSave(save);if(!ok)toast('Storage unavailable. Progress lasts for this visit.');updateHeader();return ok;}
+ function updateHeader(){$('balance').innerHTML=`<span>◈</span> <b>${fmt(save.credits)}</b>`;$('sound-button').textContent=save.settings.sound?'♪':'♩';$('sound-button').ariaLabel=save.settings.sound?'Mute sound':'Enable sound';$('sound-button').title=save.settings.sound?'Sound on':'Sound off';}
+ function toast(message){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').classList.remove('hidden');toastTimer=setTimeout(()=>$('toast').classList.add('hidden'),3200);}
+-function resetInput(){keys.clear();pointer.down=false;touch.x=touch.y=0;touch.beam=false;$('touch-stick').firstElementChild.style.transform='';}
+-function makeBackdrop(){game=createGame({mission:MISSIONS[0],upgrades:save.upgrades,seed:417});game.ufo.x=610+canvas.width*.72;game.ufo.y=270;game.ufo.beamAngle=.13;game.ufo.beamOn=true;game.camera=610;}
+-function setScene(next){scene=next;paused=false;settled=false;modal=null;modalLayer.classList.add('hidden');screen.inert=false;hud.inert=false;resetInput();sound.setBeam(false);hud.classList.toggle('hidden',next!=='playing');screen.classList.toggle('hidden',next==='playing');wrap.classList.toggle('playing',next==='playing');$('footer-status').textContent=next==='playing'?'SHIFT IN PROGRESS. MAKE IT COUNT.':'SHIP ONLINE. EARTH UNSUSPECTING.';}
++function resetInput(){
++  keys.clear();pointer.down=false;touch.x=touch.y=0;touch.beam=false;
++  const captures=[[$('touch-stick'),stickPointer],[$('touch-beam'),beamPointer],[canvas,canvasPointer]];
++  stickPointer=beamPointer=canvasPointer=null;
++  for(const [element,id] of captures)if(id!==null&&element.hasPointerCapture?.(id))element.releasePointerCapture(id);
++  $('touch-stick').firstElementChild.style.transform='';
++}
++function isolateModal(active){
++  screen.inert=active;hud.inert=active;
++  for(const element of document.querySelectorAll('.topbar,.underbar,.below-game,.page-footer'))element.inert=active;
++}
++function focusModal(){
++  const expected=modal;
++  requestAnimationFrame(()=>{if(modal===expected)modalLayer.querySelector('button,select,input')?.focus();});
++}
++function makeBackdrop(){game=createGame({mission:MISSIONS[0],upgrades:save.upgrades,seed:417});game.ufo.x=Math.min(610,2400-viewportWidth)+viewportWidth*.72;game.ufo.y=270;game.ufo.beamAngle=.13;game.ufo.beamOn=true;game.camera=Math.min(610,2400-viewportWidth);}
++function setScene(next){scene=next;paused=false;settled=false;modal=null;modalLayer.classList.add('hidden');isolateModal(false);modalParent=null;resetInput();sound.stopTransient();hud.classList.toggle('hidden',next!=='playing');screen.classList.toggle('hidden',next==='playing');wrap.classList.toggle('playing',next==='playing');$('footer-status').textContent=next==='playing'?'SHIFT IN PROGRESS. MAKE IT COUNT.':'SHIP ONLINE. EARTH UNSUSPECTING.';}
+ function showHome(){setScene('home');makeBackdrop();screen.innerHTML=`<div class="home"><div class="eyebrow"><span class="status-dot"></span> EARTH IS OPEN FOR BUSINESS</div><h1>ABDUCTION<span>MIDNIGHT HARVEST</span></h1><div class="edition">A SMALL SHIP. A BIG APPETITE.</div><p>Clock in. Beam up. Cash out.<br>Take the night shift on a planet that really,<br>really doesn’t want you here.</p><div class="home-actions"><button class="primary" data-action="missions">${save.completed.length?'Continue campaign':'Let’s make contact'} <span class="arrow">↗</span></button><button class="text-button" data-action="how">How to play <span>↗</span></button></div><div class="home-meta"><span><i>◆</i> 5 MISSIONS</span><span><i>◆</i> ONE VERY USEFUL BEAM</span><span><i>◆</i> ZERO PERMISSION</span></div></div><div class="signal-label"><span class="status-dot"></span> SIGNAL ESTABLISHED</div><div class="location-tag">SOMEWHERE ON EARTH<span>03:47 AM / THE LOCALS ARE ASLEEP. MOSTLY.</span></div>`;}
+ function missionArt(m){return `<div class="mission-art theme-${m.theme}"><i class="moon"></i><i class="building"></i><span class="sector-number">0${m.id}</span></div>`;}
+ function showMissions(){setScene('missions');screen.innerHTML=`<div class="menu-panel"><div class="menu-head"><div><span class="eyebrow">YOUR NEXT BAD IDEA</span><h2>Choose a landing zone.</h2></div><div class="menu-tabs"><button class="secondary" data-action="hangar">Upgrade ship <span>↗</span></button><button class="back-button" data-action="home">← Back</button></div></div><div class="mission-grid">${MISSIONS.map(m=>`<button class="mission-card ${selected===m.id?'selected':''}" data-action="select" data-id="${m.id}" ${m.id>save.unlocked?'disabled':''} aria-label="Mission ${m.id}: ${m.title}${m.id>save.unlocked?', locked':''}">${missionArt(m)}<div class="mission-card-content"><span class="eyebrow">${m.boss?'FINAL ENCOUNTER':`${m.duration} SECOND SHIFT`}</span><h3>${m.title}</h3><span class="card-status">${m.id>save.unlocked?'⌑ LOCKED':save.completed.includes(m.id)?'✓ SHIFT COMPLETED':'↗ READY FOR CONTACT'}</span></div></button>`).join('')}</div><div class="mission-detail" id="mission-detail"></div></div>`;updateMissionDetail();}
+ function updateMissionDetail(){const m=MISSIONS[selected-1];$('mission-detail').innerHTML=`<div><p>${m.brief}</p><div class="optional-goals">${m.goals.map(g=>`<span>${save.best[m.id]?.objectives?.includes(g.key)?'✓':'◇'} ${g.label} <b>+350</b></span>`).join('')}</div></div><button class="primary" data-action="brief">Launch shift <span class="arrow">↗</span></button>`;}
+ function showBrief(){setScene('brief');const m=MISSIONS[selected-1];screen.innerHTML=`<div class="menu-panel"><button class="back-button" data-action="missions">← Landing zones</button><div class="brief-content"><span class="eyebrow">${m.subtitle}</span><h2>${m.title}</h2><p>${m.brief}</p><div class="brief-instruction">${m.boss?'<b>RETURN TO SENDER</b><br>Wait for the core to glow. Drop rocks or spent charges onto it.':'<b>SURVIVE THE SHIFT OR CLEAR THE AREA</b><br>Hold the beam to collect specimens. Rocks stay beneath your ship.<br>Release above an attacker to turn cargo into a weapon.'}</div><div class="brief-actions"><button class="primary" data-action="start">${m.boss?'Meet ATLAS':'Start the night shift'} <span class="arrow">↗</span></button><button class="secondary" data-action="settings">${save.settings.difficulty==='easy'?'Relaxed':save.settings.difficulty==='hard'?'Overtime':'Standard'} difficulty</button></div><p class="save-message">Progress saves after every shift and upgrade. Your next mission unlocks on a win.</p></div></div>`;}
+ function showHangar(){setScene('hangar');screen.innerHTML=`<div class="menu-panel"><div class="menu-head"><div><span class="eyebrow">EMPLOYEE BENEFITS</span><h2>A better class of flying saucer.</h2></div><button class="back-button" data-action="missions">← Landing zones</button></div><div class="upgrade-grid">${UPGRADES.map(u=>{const level=save.upgrades[u.id],price=u.prices[level];return `<article class="upgrade-card"><div class="upgrade-icon"><svg viewBox="0 0 36 36" aria-hidden="true">${icons[u.icon]}</svg></div><h3>${u.name}</h3><p>${u.description}</p><div class="upgrade-levels" aria-label="Level ${level} of ${u.prices.length}">${u.prices.map((_,i)=>`<i class="${i<level?'filled':''}"></i>`).join('')}</div><button data-action="buy" data-id="${u.id}" ${price===undefined||save.credits<price?'disabled':''}>${price===undefined?'FULLY UPGRADED':`◈ ${fmt(price)} · UPGRADE`}</button></article>`;}).join('')}</div><p class="hangar-note">New hardware takes effect on your next shift. Replay missions to earn more credits and collect optional bonuses.</p></div>`;}
+-function openModal(kind){resetInput();sound.setBeam(false);if(scene==='playing')paused=true;modal=kind;screen.inert=true;hud.inert=true;modalLayer.classList.remove('hidden');if(kind==='pause'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">TAKE FIVE, SPACE CADET</span><h2>Shift paused.</h2><div class="button-stack"><button class="primary" data-action="resume">Back to the harvest <span>↗</span></button><button class="secondary" data-action="how">Flight manual</button><button class="secondary" data-action="settings">Settings</button><button class="text-button" data-action="restart-confirm">Restart this shift</button><button class="text-button" data-action="exit-confirm">Return to landing zones</button></div></div>`;}else if(kind==='how'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">EMPLOYEE ORIENTATION</span><h2>Make yourself at home.</h2><dl class="controls-list"><dt><kbd>W A S D</kbd> / <kbd>ARROWS</kbd></dt><dd>Fly in any direction</dd><dt><kbd>MOUSE</kbd></dt><dd>Aim below the ship</dd><dt><kbd>CLICK</kbd> / <kbd>SPACE</kbd></dt><dd>Hold to lift and collect</dd><dt><kbd>RELEASE</kbd></dt><dd>Drop everything you carry</dd><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Aim without a mouse</dd><dt><kbd>ESC</kbd> / <kbd>P</kbd></dt><dd>Pause the shift</dd></dl><p>People and cows become cargo credits. Rocks, vehicles, and charges stay under your ship: carry them as cover, then drop them onto enemies. Lift an attacker to cancel its shot.</p><p>Watch the beam load. Heavy cargo can block specimens. Buildings block shots. Aircraft always announce their flight path.</p><p>On touchscreens, use the left thumb pad to fly and hold BEAM to lift directly below you.</p><button class="primary" data-action="close">Got it. Let’s fly. <span>↗</span></button></div>`;}else if(kind==='settings'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">FLIGHT PREFERENCES</span><h2>Your kind of chaos.</h2><label class="setting-row"><span>Difficulty<small>Applies to your next shift</small></span><select id="difficulty-select"><option value="easy" ${save.settings.difficulty==='easy'?'selected':''}>Relaxed</option><option value="normal" ${save.settings.difficulty==='normal'?'selected':''}>Standard</option><option value="hard" ${save.settings.difficulty==='hard'?'selected':''}>Overtime</option></select></label><label class="setting-row"><span>Sound effects</span><input id="sound-check" type="checkbox" ${save.settings.sound?'checked':''}></label><label class="setting-row"><span>Reduced motion<small>Less shake and visual movement</small></span><input id="motion-check" type="checkbox" ${save.settings.reducedMotion?'checked':''}></label><p class="save-message">Saved on this browser. No account needed. Progress stays on this device.</p><button class="primary" data-action="close">All set <span>✓</span></button></div>`;}requestAnimationFrame(()=>modalLayer.querySelector('button,select,input')?.focus());}
+-function closeModal(){const was=modal;modal=null;screen.inert=false;hud.inert=false;modalLayer.classList.add('hidden');if(scene==='playing'){paused=false;resetInput();}else if(scene==='brief'&&was==='settings')showBrief();}
+-function confirmRunAction(action){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">LEAVING SO SOON?</span><h2>${action==='restart'?'Start this shift over?':'Clock out early?'}</h2><p>This shift’s unbanked earnings will be lost. Your saved credits and upgrades are safe.</p><div class="button-stack"><button class="primary" data-action="${action}">${action==='restart'?'Restart shift':'Return to landing zones'}</button><button class="secondary" data-action="pause">Keep this shift</button></div></div>`;modal='confirm';}
+-function startGame(){setScene('playing');sound.unlock();game=createGame({mission:MISSIONS[selected-1],upgrades:{...save.upgrades},difficulty:save.settings.difficulty,seed:++seed});game.viewportWidth=canvas.width;pointer.active=false;keyAim=0;keyboardAim=false;accumulator=0;settled=false;$('hud-sector').textContent=game.mission.subtitle;$('hud-title').textContent=game.mission.title;updateHUD();canvas.focus();}
++function openModal(kind){if(!modal)focusBeforeModal=document.activeElement;modalParent=modal==='pause'&&kind!=='pause'?'pause':null;resetInput();sound.stopTransient();if(scene==='playing')paused=true;modal=kind;isolateModal(true);modalLayer.classList.remove('hidden');if(kind==='pause'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">TAKE FIVE, SPACE CADET</span><h2>Shift paused.</h2><div class="button-stack"><button class="primary" data-action="resume">Back to the harvest <span>↗</span></button><button class="secondary" data-action="how">Flight manual</button><button class="secondary" data-action="settings">Settings</button><button class="text-button" data-action="restart-confirm">Restart this shift</button><button class="text-button" data-action="exit-confirm">Return to landing zones</button></div></div>`;}else if(kind==='how'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">EMPLOYEE ORIENTATION</span><h2>Make yourself at home.</h2><dl class="controls-list"><dt><kbd>W A S D</kbd> / <kbd>ARROWS</kbd></dt><dd>Fly in any direction</dd><dt><kbd>MOUSE</kbd></dt><dd>Aim below the ship</dd><dt><kbd>CLICK</kbd> / <kbd>SPACE</kbd></dt><dd>Hold to lift and collect</dd><dt><kbd>RELEASE</kbd></dt><dd>Drop everything you carry</dd><dt><kbd>Q</kbd> / <kbd>E</kbd></dt><dd>Aim without a mouse</dd><dt><kbd>ESC</kbd> / <kbd>P</kbd></dt><dd>Pause the shift</dd></dl><p>People and cows become cargo credits. Rocks, vehicles, and charges stay under your ship: carry them as cover, then drop them onto enemies. Lift an attacker to cancel its shot.</p><p>Watch the beam load. Heavy cargo can block specimens. Buildings block shots. Aircraft always announce their flight path.</p><p>On touchscreens, use the left thumb pad to fly and hold BEAM to lift directly below you.</p><button class="primary" data-action="close">Got it. Let’s fly. <span>↗</span></button></div>`;}else if(kind==='settings'){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">FLIGHT PREFERENCES</span><h2>Your kind of chaos.</h2><label class="setting-row"><span>Difficulty<small>Applies to your next shift</small></span><select id="difficulty-select"><option value="easy" ${save.settings.difficulty==='easy'?'selected':''}>Relaxed</option><option value="normal" ${save.settings.difficulty==='normal'?'selected':''}>Standard</option><option value="hard" ${save.settings.difficulty==='hard'?'selected':''}>Overtime</option></select></label><label class="setting-row"><span>Sound effects</span><input id="sound-check" type="checkbox" ${save.settings.sound?'checked':''}></label><label class="setting-row"><span>Reduced motion<small>Less shake and visual movement</small></span><input id="motion-check" type="checkbox" ${save.settings.reducedMotion?'checked':''}></label><p class="save-message">Saved on this browser. No account needed. Progress stays on this device.</p><button class="primary" data-action="close">All set <span>✓</span></button></div>`;}focusModal();}
++function closeModal(){
++  if(!modal)return;
++  if(modal==='confirm'||modalParent==='pause'){openModal('pause');return;}
++  const was=modal;modal=null;modalParent=null;isolateModal(false);modalLayer.classList.add('hidden');
++  if(scene==='playing'){paused=false;resetInput();canvas.focus({preventScroll:true});}
++  else if(scene==='brief'&&was==='settings')showBrief();
++  else if(focusBeforeModal?.isConnected)focusBeforeModal.focus({preventScroll:true});
++}
++function confirmRunAction(action){modalLayer.innerHTML=`<div class="modal"><span class="eyebrow">LEAVING SO SOON?</span><h2>${action==='restart'?'Start this shift over?':'Clock out early?'}</h2><p>This shift’s unbanked earnings will be lost. Your saved credits and upgrades are safe.</p><div class="button-stack"><button class="primary" data-action="${action}">${action==='restart'?'Restart shift':'Return to landing zones'}</button><button class="secondary" data-action="pause">Keep this shift</button></div></div>`;modal='confirm';modalParent=null;focusModal();}
++function startGame(){setScene('playing');sound.unlock();game=createGame({mission:MISSIONS[selected-1],upgrades:{...save.upgrades},difficulty:save.settings.difficulty,seed:++seed});game.viewportWidth=viewportWidth;pointer.active=false;keyAim=0;keyboardAim=false;accumulator=0;settled=false;$('hud-sector').textContent=game.mission.subtitle;$('hud-title').textContent=game.mission.title;updateHUD();canvas.focus();}
+ function showResults(){if(settled)return;settled=true;resetInput();sound.setBeam(false);const won=game.status==='won',result=completeMission(save,game);save=result.save;const stored=storeSave();scene='results';paused=false;hud.classList.add('hidden');screen.classList.remove('hidden');wrap.classList.remove('playing');const m=game.mission,completed=won&&m.id===5;const messages=completed?'ATLAS is down. Earth has filed a formal complaint. Your employer has framed it. Replay any shift and finish the optional contracts.':won?'Another successful night of questionable business. Your earnings are banked. Give your ship an upgrade before the next shift.':'The locals got the last word this time. Half your collection earnings are banked. Upgrade your ship or give this shift another go.';screen.innerHTML=`<div class="results"><div><span class="eyebrow">${completed?'CAMPAIGN COMPLETE':won?'SHIFT COMPLETE':'SHIP RECOVERED'}</span><h2>${completed?'Employee of<br>the galaxy.':won?'A very<br>productive night.':'A small<br>workplace incident.'}</h2><p>${messages}</p><div class="result-totals"><div><strong>${fmt(game.stats.captured)}</strong><span>SPECIMENS</span></div><div><strong>×${Math.max(1,game.stats.maxCombo||1)}</strong><span>BEST MULTIPLIER</span></div></div><div>${m.goals.map(g=>`<div class="goal-result ${(game.stats[g.key]||0)>=g.target?'done':''}"><span>${(game.stats[g.key]||0)>=g.target?'✓':'◇'}</span>${g.label} (${Math.min(game.stats[g.key]||0,g.target)}/${g.target})</div>`).join('')}</div></div><div><div class="payout-card"><h3>THE NIGHT’S TAKINGS</h3><div class="payout-row"><span>Collection ${won?'':'(50% recovered)'}</span><strong>◈ ${fmt(result.payout.collection)}</strong></div><div class="payout-row"><span>Mission ${result.firstClear?'& first clear':''}</span><strong>◈ ${fmt(result.payout.mission)}</strong></div><div class="payout-row"><span>New optional contracts</span><strong>◈ ${fmt(result.payout.objectives)}</strong></div><div class="payout-row"><span>Performance bonus</span><strong>◈ ${fmt(result.payout.performance)}</strong></div><div class="payout-row total"><span>Total earned</span><strong>◈ ${fmt(result.payout.total)}</strong></div></div><div class="results-actions"><button class="primary" data-action="${won?'hangar':'start'}">${won?'Upgrade ship':'Try again'} <span>↗</span></button><button class="secondary" data-action="missions">Landing zones</button></div>${result.newUnlock?`<p class="save-message">✓ Sector 0${result.newUnlock} unlocked. ${stored?'Your progress is saved.':'Progress is held for this visit.'}</p>`:`<p class="save-message">${stored?'Your earnings and progress are saved.':'Storage unavailable. Earnings are held for this visit.'}</p>`}</div></div>`;$('footer-status').textContent=completed?'ALL SHIFTS COMPLETE. NICE WORK, SPACE CADET.':'SHIFT CLOSED. EARNINGS BANKED.';if(result.newUnlock)selected=result.newUnlock;}
+ function updateHUD(){if(!game)return;const u=game.ufo;const seconds=Math.ceil(Math.max(0,game.remaining));$('hud-time').textContent=`${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`;$('shield-text').textContent=`${Math.ceil(u.hp)} / ${u.maxHp}`;$('shield-meter').style.width=`${100*Math.max(0,u.hp)/u.maxHp}%`;$('shield-meter').style.background=u.hp/u.maxHp<.3?'#f99c81':'#c3f59b';$('load-text').textContent=`${Math.round(u.load)} / ${u.capacity}`;$('load-meter').style.width=`${Math.min(100,100*u.load/u.capacity)}%`;$('capture-count').textContent=String(game.stats.captured).padStart(2,'0');$('combo').textContent=`×${Math.max(1,game.stats.combo||1)}`;$('beam-feedback').textContent=game.beamFeedback||(u.beamOn?'TRACTOR BEAM ACTIVE':'HOLD TO COLLECT');const t=game.time;let tip='';if(game.mission.id===1){if(t<7)tip='WASD or arrows to fly · Mouse to aim · Hold click or SPACE to collect';else if(t<14)tip='Get close to the ground. Line up a specimen beneath your beam.';else if(t<22&&game.stats.captured<2)tip='Hold your beam steady until a specimen reaches the saucer.';else if(t>22&&t<30)tip='Rocks stay in your beam. Release above defenders to drop a weapon.';}if(game.mission.boss&&t<13)tip='Catch spent charges or lift rocks. Drop them onto the glowing core.';if(game.director.warning)tip='⚠ AIRCRAFT INCOMING — watch the marked flight path';$('tutorial-tip').textContent=tip;}
+ 
+-document.addEventListener('click',e=>{const button=e.target.closest('[data-action]');if(!button||button.disabled)return;sound.unlock();sound.play('ui');const action=button.dataset.action;switch(action){case'home':showHome();break;case'missions':showMissions();break;case'select':selected=Number(button.dataset.id);showMissions();break;case'brief':showBrief();break;case'how':openModal('how');break;case'settings':openModal('settings');break;case'hangar':showHangar();break;case'start':case'restart':startGame();break;case'buy':{const r=purchaseUpgrade(save,button.dataset.id);if(r.ok){save=r.save;storeSave();showHangar();sound.play('buy');toast('Upgrade installed. Ready for your next shift.');}else toast(r.reason);break;}case'pause':openModal('pause');break;case'resume':case'close':closeModal();break;case'restart-confirm':confirmRunAction('restart');break;case'exit-confirm':confirmRunAction('exit');break;case'exit':showMissions();break;}});
++document.addEventListener('click',e=>{const button=e.target.closest('[data-action]');if(!button||button.disabled)return;sound.unlock();const action=button.dataset.action;switch(action){case'home':showHome();break;case'missions':showMissions();break;case'select':selected=Number(button.dataset.id);showMissions();break;case'brief':showBrief();break;case'how':openModal('how');break;case'settings':openModal('settings');break;case'hangar':showHangar();break;case'start':case'restart':startGame();break;case'buy':{const r=purchaseUpgrade(save,button.dataset.id);if(r.ok){save=r.save;storeSave();showHangar();sound.play('buy');toast('Upgrade installed. Ready for your next shift.');}else toast(r.reason);break;}case'pause':openModal('pause');break;case'resume':case'close':closeModal();break;case'restart-confirm':confirmRunAction('restart');break;case'exit-confirm':confirmRunAction('exit');break;case'exit':showMissions();break;case'reload':window.location.reload();break;}sound.play('ui');});
+ document.addEventListener('change',e=>{if(e.target.id==='difficulty-select')save.settings.difficulty=e.target.value;else if(e.target.id==='sound-check'){save.settings.sound=e.target.checked;sound.setEnabled(e.target.checked);sound.unlock();}else if(e.target.id==='motion-check')save.settings.reducedMotion=e.target.checked;else return;storeSave();});
+ $('sound-button').addEventListener('click',()=>{save.settings.sound=!save.settings.sound;sound.setEnabled(save.settings.sound);sound.unlock();storeSave();});
+ $('settings-button').addEventListener('click',()=>openModal('settings'));
+ $('pause-button').addEventListener('click',()=>openModal('pause'));
+ $('brand').addEventListener('click',e=>{e.preventDefault();if(scene==='playing'){openModal('pause');confirmRunAction('exit');}else showHome();});
+ $('fullscreen-button').addEventListener('click',async()=>{try{if(document.fullscreenElement)await document.exitFullscreen();else if(wrap.requestFullscreen)await wrap.requestFullscreen();else toast('Use your browser’s fullscreen control.');}catch{toast('Fullscreen is unavailable in this browser.');}});
+-function pointerPosition(e){const r=canvas.getBoundingClientRect();pointer.x=(e.clientX-r.left)*canvas.width/r.width;pointer.y=(e.clientY-r.top)*canvas.height/r.height;pointer.active=true;keyboardAim=false;}
++function pointerPosition(e){
++  const r=canvas.getBoundingClientRect();if(!r.width||!r.height)return;
++  pointer.x=(e.clientX-r.left)*viewportWidth/r.width;pointer.y=(e.clientY-r.top)*720/r.height;pointer.active=true;keyboardAim=false;
++}
+ canvas.addEventListener('pointermove',e=>{if(e.pointerType!=='touch')pointerPosition(e);});
+-canvas.addEventListener('pointerdown',e=>{if(scene!=='playing'||paused)return;e.preventDefault();sound.unlock();pointerPosition(e);pointer.down=true;canvas.setPointerCapture?.(e.pointerId);});
+-canvas.addEventListener('pointerup',()=>pointer.down=false);canvas.addEventListener('pointercancel',()=>pointer.down=false);window.addEventListener('pointerup',()=>pointer.down=false);canvas.addEventListener('contextmenu',e=>e.preventDefault());
+-window.addEventListener('keydown',e=>{if(e.target.matches('input,select'))return;const k=e.key.toLowerCase();if((scene==='playing'&&!paused&&[' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))||(k==='escape'&&(scene==='playing'||modal)))e.preventDefault();if((k==='escape'||k==='p')&&!e.repeat){if(modal)closeModal();else if(scene==='playing')openModal('pause');return;}if(scene==='playing'&&!paused){keys.add(k);if(k==='q'||k==='e')keyboardAim=true;if(k===' ')sound.unlock();}});
++canvas.addEventListener('pointerdown',e=>{
++  if(scene!=='playing'||paused||e.button!==0||canvasPointer!==null)return;
++  e.preventDefault();sound.unlock();pointerPosition(e);pointer.down=true;canvasPointer=e.pointerId;canvas.setPointerCapture?.(e.pointerId);
++});
++function releaseCanvas(e){if(e.pointerId!==canvasPointer)return;pointer.down=false;canvasPointer=null;}
++for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,releaseCanvas);
++window.addEventListener('pointerup',releaseCanvas);
++
++canvas.addEventListener('contextmenu',e=>e.preventDefault());
++window.addEventListener('keydown',e=>{
++  const k=e.key.toLowerCase();
++  if(modal&&k==='tab'){
++    const focusables=[...modalLayer.querySelectorAll('button:not([disabled]),select,input,[tabindex="0"]')];
++    const first=focusables[0],last=focusables.at(-1),active=document.activeElement;
++    if(first&&((e.shiftKey&&(active===first||!modalLayer.contains(active)))||(!e.shiftKey&&(active===last||!modalLayer.contains(active))))){e.preventDefault();(e.shiftKey?last:first).focus();}
++    return;
++  }
++  if(k==='escape'&&(modal||scene==='playing')){
++    e.preventDefault();if(!e.repeat){if(modal)closeModal();else openModal('pause');}return;
++  }
++  if(e.target.matches('button,a,input,select,textarea,[contenteditable="true"]')||e.ctrlKey||e.metaKey||e.altKey)return;
++  if(k==='p'&&!e.repeat){if(modal)closeModal();else if(scene==='playing')openModal('pause');return;}
++  if(scene==='playing'&&!paused){
++    if([' ','arrowup','arrowdown','arrowleft','arrowright'].includes(k))e.preventDefault();
++    keys.add(k);if((k==='q'||k==='e')&&!keyboardAim){keyAim=game.ufo.beamAngle;keyboardAim=true;}if(k===' ')sound.unlock();
++  }
++});
++
+ window.addEventListener('keyup',e=>keys.delete(e.key.toLowerCase()));
+ function autoPause(){resetInput();if(scene==='playing'&&!paused)openModal('pause');}
+ window.addEventListener('blur',autoPause);document.addEventListener('visibilitychange',()=>{if(document.hidden)autoPause();});
+-let stickPointer=null;
+-$('touch-stick').addEventListener('pointerdown',e=>{e.preventDefault();stickPointer=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);moveStick(e);sound.unlock();});
++$('touch-stick').addEventListener('pointerdown',e=>{if(scene!=='playing'||paused||stickPointer!==null)return;e.preventDefault();stickPointer=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);moveStick(e);sound.unlock();});
+ function moveStick(e){if(stickPointer!==e.pointerId)return;const r=$('touch-stick').getBoundingClientRect(),dx=(e.clientX-r.left-r.width/2)/32,dy=(e.clientY-r.top-r.height/2)/32,len=Math.max(1,Math.hypot(dx,dy));touch.x=dx/len;touch.y=dy/len;$('touch-stick').firstElementChild.style.transform=`translate(${touch.x*25}px,${touch.y*25}px)`;}
+-$('touch-stick').addEventListener('pointermove',moveStick);for(const ev of ['pointerup','pointercancel'])$('touch-stick').addEventListener(ev,()=>{stickPointer=null;touch.x=touch.y=0;$('touch-stick').firstElementChild.style.transform='';});
+-$('touch-beam').addEventListener('pointerdown',e=>{e.preventDefault();e.currentTarget.setPointerCapture(e.pointerId);touch.beam=true;pointer.active=false;keyboardAim=false;sound.unlock();});for(const ev of ['pointerup','pointercancel'])$('touch-beam').addEventListener(ev,()=>touch.beam=false);
+-function frame(now){const elapsed=Math.min((now-frameTime)/1000||0,.1);frameTime=now;uiTime+=elapsed;if(scene==='playing'&&!paused){accumulator+=elapsed;while(accumulator>=1/60){let mx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0)+touch.x,my=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)+touch.y;keyAim=Math.max(-.698,Math.min(.698,keyAim+((keys.has('e')?1:0)-(keys.has('q')?1:0))/60));const aimX=keyboardAim?game.ufo.x+Math.sin(keyAim)*400:pointer.active?pointer.x+game.camera:game.ufo.x,aimY=keyboardAim?game.ufo.y+Math.cos(keyAim)*400:pointer.active?pointer.y:game.ufo.y+400;stepGame(game,{moveX:Math.max(-1,Math.min(1,mx)),moveY:Math.max(-1,Math.min(1,my)),aimX,aimY,beam:pointer.down||keys.has(' ')||touch.beam},1/60);for(const event of game.events.splice(0))sound.play(event.type);accumulator-=1/60;if(game.status!=='playing'){showResults();break;}}sound.setBeam(scene==='playing'&&game.ufo.beamOn);if(uiTime>.09){updateHUD();uiTime=0;}}if(game){render(ctx,game,{width:canvas.width,height:720,time:now/1000,reducedMotion:save.settings.reducedMotion,menu:scene!=='playing'});}requestAnimationFrame(frame);}
+-function resizeCanvas(){const r=wrap.getBoundingClientRect();canvas.width=Math.round(720*r.width/r.height);canvas.height=720;if(game){game.viewportWidth=canvas.width;if(scene==='home'){game.ufo.x=610+canvas.width*.72;game.camera=610;}else game.camera=Math.max(0,Math.min(game.camera,2400-canvas.width));}}
+-new ResizeObserver(resizeCanvas).observe(wrap);
+-updateHeader();showHome();resizeCanvas();requestAnimationFrame(frame);
++$('touch-stick').addEventListener('pointermove',moveStick);for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('touch-stick').addEventListener(ev,e=>{if(e.pointerId!==stickPointer)return;stickPointer=null;touch.x=touch.y=0;$('touch-stick').firstElementChild.style.transform='';});
++$('touch-beam').addEventListener('pointerdown',e=>{if(scene!=='playing'||paused||beamPointer!==null)return;e.preventDefault();beamPointer=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);touch.beam=true;pointer.active=false;keyboardAim=false;sound.unlock();});for(const ev of ['pointerup','pointercancel','lostpointercapture'])$('touch-beam').addEventListener(ev,e=>{if(e.pointerId!==beamPointer)return;touch.beam=false;beamPointer=null;});
++function frameUnsafe(now){const started=profiling?performance.now():0;const elapsed=Math.min((now-frameTime)/1000||0,.1);frameTime=now;uiTime+=elapsed;if(scene==='playing'&&!paused){accumulator+=elapsed;while(accumulator>=1/60){let mx=(keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0)+touch.x,my=(keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)+touch.y;keyAim=Math.max(-.698,Math.min(.698,keyAim+((keys.has('e')?1:0)-(keys.has('q')?1:0))/60));const aimX=keyboardAim?game.ufo.x+Math.sin(keyAim)*400:pointer.active?pointer.x+game.camera:game.ufo.x,aimY=keyboardAim?game.ufo.y+Math.cos(keyAim)*400:pointer.active?pointer.y:game.ufo.y+400;stepGame(game,{moveX:Math.max(-1,Math.min(1,mx)),moveY:Math.max(-1,Math.min(1,my)),aimX,aimY,beam:pointer.down||keys.has(' ')||touch.beam},1/60);for(const event of game.events.splice(0))sound.play(event.type);accumulator-=1/60;if(game.status!=='playing'){showResults();break;}}sound.setBeam(scene==='playing'&&game.ufo.beamOn);if(uiTime>.09){updateHUD();uiTime=0;}}if(game){ctx.setTransform(canvas.width/viewportWidth,0,0,canvas.height/720,0,0);render(ctx,game,{width:viewportWidth,height:720,time:scene==='home'?now/1000:game.time,reducedMotion:save.settings.reducedMotion,menu:scene!=='playing'});}recordProfile(started,now);requestAnimationFrame(frame);}
++function frame(now){if(frameFailed)return;try{frameUnsafe(now);}catch(error){reportFatal(error);}}
++function reportFatal(error){
++  if(frameFailed)return;frameFailed=true;console.error('Game runtime failure:',error);
++  resetInput();sound.stopTransient();isolateModal(false);modal=null;modalLayer.classList.add('hidden');
++  hud.classList.add('hidden');screen.classList.remove('hidden');scene='error';
++  screen.innerHTML='<div class="menu-panel brief-content"><span class="eyebrow">FLIGHT SYSTEM UNAVAILABLE</span><h2>Unable to continue this shift.</h2><p>Your banked progress is safe. Reload to restart. If this repeats, keep the browser console error for troubleshooting.</p><button class="primary" data-action="reload">Reload game</button></div>';
++}
++function resizeCanvas(){
++  const r=wrap.getBoundingClientRect(),width=Math.max(1,wrap.clientWidth||r.width),height=Math.max(1,wrap.clientHeight||r.height);
++  viewportWidth=Math.max(480,Math.min(2400,Math.round(720*width/height)));
++  const cssWidth=Math.min(width,height*viewportWidth/720),cssHeight=cssWidth*720/viewportWidth;
++  const scale=Math.min(2,Math.max(1,cssHeight*(window.devicePixelRatio||1)/720));
++  const backingWidth=Math.round(viewportWidth*scale),backingHeight=Math.round(720*scale);
++  if(canvas.width!==backingWidth)canvas.width=backingWidth;if(canvas.height!==backingHeight)canvas.height=backingHeight;
++  canvas.style.width=`${cssWidth}px`;canvas.style.height=`${cssHeight}px`;
++  if(game){game.viewportWidth=viewportWidth;game.camera=Math.max(0,Math.min(game.camera,2400-viewportWidth));
++    if(scene==='home'){game.camera=Math.min(610,2400-viewportWidth);game.ufo.x=game.camera+viewportWidth*.72;}}
++}
++if(typeof ResizeObserver==='function')new ResizeObserver(resizeCanvas).observe(wrap);
++window.addEventListener('resize',resizeCanvas);
++canvas.addEventListener('contextlost',e=>{e.preventDefault();autoPause();toast('Graphics paused. Waiting for the display to recover.');});
++canvas.addEventListener('contextrestored',()=>{resizeCanvas();toast('Display restored. Resume when ready.');});
++window.addEventListener('pagehide',()=>sound.dispose());
++
++if(ctx){updateHeader();showHome();resizeCanvas();requestAnimationFrame(frame);}else reportFatal(new Error('Canvas 2D is unavailable in this browser.'));
+--- a/dist/audio.js
++++ b/dist/audio.js
+@@ -1,8 +1,77 @@
+ export class Sound {
+-  constructor(){this.enabled=true;this.ctx=null;this.beam=null;this.lastShot=0;}
+-  unlock(){if(!this.enabled)return;try{if(!this.ctx)this.ctx=new(window.AudioContext||window.webkitAudioContext)();if(this.ctx.state==='suspended')this.ctx.resume();}catch{}}
+-  setEnabled(value){this.enabled=value;if(!value)this.setBeam(false);}
+-  tone(freq,duration=.15,type='sine',volume=.06,end=freq){if(!this.enabled||!this.ctx)return;const t=this.ctx.currentTime,o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+duration);g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);o.connect(g);g.connect(this.ctx.destination);o.start(t);o.stop(t+duration+.02);}
+-  play(type){if(!this.enabled)return;this.unlock();if(!this.ctx)return;switch(type){case'capture':this.tone(500,.22,'sine',.08,1100);break;case'hit':this.tone(130,.3,'sawtooth',.05,35);break;case'explosion':this.tone(75,.4,'sawtooth',.06,23);break;case'shot':if(this.ctx.currentTime-this.lastShot>.15){this.tone(250,.09,'triangle',.025,100);this.lastShot=this.ctx.currentTime;}break;case'warning':this.tone(700,.35,'triangle',.045,440);break;case'win':[0,1,2,3].forEach((n)=>setTimeout(()=>this.tone([330,440,550,880][n],.35,'sine',.06),n*140));break;case'lose':this.tone(200,.8,'triangle',.055,50);break;case'buy':this.tone(600,.25,'sine',.06,1200);break;case'throw':this.tone(160,.14,'triangle',.025,65);break;default:this.tone(380,.06,'sine',.025,500);}}
+-  setBeam(active){if(!this.ctx)return;if(active&&this.enabled){if(!this.beam){const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=80;g.gain.value=0;o.connect(g);g.connect(this.ctx.destination);o.start();this.beam={o,g};}this.beam.g.gain.setTargetAtTime(.035,this.ctx.currentTime,.08);this.beam.o.frequency.setTargetAtTime(85+Math.sin(this.ctx.currentTime*4)*12,this.ctx.currentTime,.1);}else if(this.beam){this.beam.g.gain.setTargetAtTime(0,this.ctx.currentTime,.05);}}
++  constructor({createContext, onError}={}) {
++    this.createContext=createContext||(()=>new(window.AudioContext||window.webkitAudioContext)());
++    this.onError=onError||((error)=>console.warn('Game audio is unavailable:',error));
++    this.enabled=true;this.ctx=null;this.master=null;this.beam=null;
++    this.lastShot=-Infinity;this.lastBeamUpdate=-Infinity;this.voices=new Set();this.reported=false;
++  }
++  report(error){if(!this.reported){this.reported=true;this.onError(error);}}
++  unlock(){
++    if(!this.enabled)return;
++    try{
++      if(!this.ctx||this.ctx.state==='closed'){
++        this.ctx=this.createContext();this.master=this.ctx.createGain();this.master.gain.value=.7;
++        this.master.connect(this.ctx.destination);this.beam=null;this.voices.clear();
++      }
++      if(this.ctx.state==='suspended')Promise.resolve(this.ctx.resume()).catch(error=>this.report(error));
++    }catch(error){this.report(error);}
++  }
++  setEnabled(value){this.enabled=Boolean(value);if(!this.enabled)this.stopTransient();}
++  tone(freq,duration=.15,type='sine',volume=.06,end=freq,delay=0){
++    if(!this.enabled||!this.ctx||this.ctx.state==='closed')return;
++    let o,g,voice;
++    try{
++      while(this.voices.size>=16){const oldest=this.voices.values().next().value;oldest.stop();}
++      const t=this.ctx.currentTime+delay;o=this.ctx.createOscillator();g=this.ctx.createGain();
++      let stopped=false;
++      voice={stop:()=>{if(stopped)return;stopped=true;try{o.stop();}catch(error){this.report(error);}o.disconnect();g.disconnect();this.voices.delete(voice);}};
++      o.onended=()=>{o.disconnect();g.disconnect();this.voices.delete(voice);};
++      o.type=type;o.frequency.setValueAtTime(freq,t);o.frequency.exponentialRampToValueAtTime(Math.max(20,end),t+duration);
++      g.gain.setValueAtTime(volume,t);g.gain.exponentialRampToValueAtTime(.001,t+duration);
++      o.connect(g);g.connect(this.master);this.voices.add(voice);o.start(t);o.stop(t+duration+.02);
++    }catch(error){o?.disconnect();g?.disconnect();if(voice)this.voices.delete(voice);this.report(error);}
++  }
++  play(type){
++    if(!this.enabled)return;this.unlock();if(!this.ctx)return;
++    switch(type){
++      case'capture':this.tone(500,.22,'sine',.08,1100);break;
++      case'hit':this.tone(130,.3,'sawtooth',.05,35);break;
++      case'explosion':this.tone(75,.4,'sawtooth',.06,23);break;
++      case'shot':if(this.ctx.currentTime-this.lastShot>.15){this.tone(250,.09,'triangle',.025,100);this.lastShot=this.ctx.currentTime;}break;
++      case'warning':this.tone(700,.35,'triangle',.045,440);break;
++      case'win':[330,440,550,880].forEach((frequency,n)=>this.tone(frequency,.35,'sine',.06,frequency,n*.14));break;
++      case'lose':this.tone(200,.8,'triangle',.055,50);break;
++      case'buy':this.tone(600,.25,'sine',.06,1200);break;
++      case'throw':this.tone(160,.14,'triangle',.025,65);break;
++      default:this.tone(380,.06,'sine',.025,500);
++    }
++  }
++  setBeam(active){
++    try{this.updateBeam(active);}catch(error){
++      this.beam?.o.disconnect();this.beam?.g.disconnect();this.beam=null;this.report(error);
++    }
++  }
++  updateBeam(active){
++    if(!this.ctx||this.ctx.state==='closed')return;
++    if(active&&this.enabled){
++      if(!this.beam){
++        const o=this.ctx.createOscillator(),g=this.ctx.createGain();o.type='sine';o.frequency.value=80;g.gain.value=0;
++        o.connect(g);g.connect(this.master);o.start();this.beam={o,g};this.lastBeamUpdate=-Infinity;
++      }
++      const now=this.ctx.currentTime;
++      if(now-this.lastBeamUpdate>=1/30){
++        this.beam.g.gain.cancelScheduledValues(now);this.beam.g.gain.setTargetAtTime(.035,now,.08);
++        this.beam.o.frequency.cancelScheduledValues(now);this.beam.o.frequency.setTargetAtTime(85+Math.sin(now*4)*12,now,.1);this.lastBeamUpdate=now;
++      }
++    }else if(this.beam){
++      const {o,g}=this.beam;this.beam=null;
++      g.gain.cancelScheduledValues(this.ctx.currentTime);g.gain.setTargetAtTime(0,this.ctx.currentTime,.02);
++      o.onended=()=>{o.disconnect();g.disconnect();};o.stop(this.ctx.currentTime+.12);
++    }
++  }
++  stopTransient(){this.setBeam(false);for(const voice of [...this.voices])voice.stop();}
++  dispose(){
++    this.stopTransient();this.master?.disconnect();
++    if(this.ctx&&this.ctx.state!=='closed')Promise.resolve(this.ctx.close()).catch(error=>this.report(error));
++  }
+ }
+--- /dev/null
++++ b/dist/collision.js
+@@ -0,0 +1,88 @@
++// Centered, axis-aligned geometry shared by movement, perception and impacts.
++// A small separation keeps resting contacts stable without opening visible gaps.
++const SKIN = .001;
++export function overlaps(a, b) {
++  return Math.abs(a.x-b.x)<(a.w+b.w)/2-SKIN && Math.abs(a.y-b.y)<(a.h+b.h)/2-SKIN;
++}
++
++function rayHit(x,y,dx,dy,minX,maxX,minY,maxY,box){
++  let enter=-Infinity,exit=Infinity,nx=0,ny=0;
++  for(let axis=0;axis<2;axis++){
++    const start=axis?y:x,delta=axis?dy:dx,lo=axis?minY:minX,hi=axis?maxY:maxX;
++    if(Math.abs(delta)<1e-10){if(start<lo||start>hi)return null;continue;}
++    let near=(lo-start)/delta,far=(hi-start)/delta;if(near>far){const temp=near;near=far;far=temp;}
++    if(near>enter){enter=near;nx=axis?0:(delta>0?-1:1);ny=axis?(delta>0?-1:1):0;}
++    exit=Math.min(exit,far);if(enter>exit)return null;
++  }
++  if(enter<-.000001||enter>1||exit<0||dx*nx+dy*ny>=0)return null;
++  return {time:Math.max(0,enter),nx,ny,box};
++}
++export function sweepBox(body,dx,dy,box){
++  if(overlaps(body,box))return {time:0,nx:0,ny:0,box};
++  return rayHit(body.x,body.y,dx,dy,box.x-(box.w+body.w)/2,box.x+(box.w+body.w)/2,
++    box.y-(box.h+body.h)/2,box.y+(box.h+body.h)/2,box);
++}
++export function segmentHit(x1,y1,x2,y2,box,pad=0){
++  const halfW=Math.max(.005,box.w/2+pad),halfH=Math.max(.005,box.h/2+pad);
++  if(Math.abs(x1-box.x)<=halfW&&Math.abs(y1-box.y)<=halfH)return {time:0,nx:0,ny:0,box};
++  return rayHit(x1,y1,x2-x1,y2-y1,box.x-halfW,box.x+halfW,box.y-halfH,box.y+halfH,box);
++}
++
++function limitsFor(body, options) {
++  const {width=2400,ground=610,allowOutsideX=false,limits={}}=options;
++  return {left:allowOutsideX?-Infinity:body.w/2,right:allowOutsideX?Infinity:width-body.w/2,
++    top:body.h/2,bottom:ground-body.h/2,...limits};
++}
++
++// Spawns and stale contacts may already overlap. Find the nearest free location
++// across the union of solid boxes instead of alternating pushes between walls.
++function escapePenetration(body, solids, options, bounds) {
++  body.x=Math.max(bounds.left,Math.min(bounds.right,body.x));
++  body.y=Math.max(bounds.top,Math.min(bounds.bottom,body.y));
++  if(!solids.some(b=>b.hp>0&&overlaps(body,b)))return false;
++  const originalX=body.x, originalY=body.y, candidates=[];
++  for(const b of solids){
++    if(b.hp<=0)continue;
++    candidates.push({x:b.x-(b.w+body.w)/2-SKIN,y:originalY},{x:b.x+(b.w+body.w)/2+SKIN,y:originalY});
++    if(!options.horizontalOnly)candidates.push({x:originalX,y:b.y-(b.h+body.h)/2-SKIN},{x:originalX,y:b.y+(b.h+body.h)/2+SKIN});
++  }
++  candidates.sort((a,b)=>(a.x-originalX)**2+(a.y-originalY)**2-(b.x-originalX)**2-(b.y-originalY)**2);
++  for(const p of candidates){
++    if(p.x<bounds.left||p.x>bounds.right||p.y<bounds.top||p.y>bounds.bottom)continue;
++    if(solids.some(b=>b.hp>0&&overlaps({x:p.x,y:p.y,w:body.w,h:body.h},b)))continue;
++    body.x=p.x;body.y=p.y;return true;
++  }
++  return false;
++}
++
++export function depenetrate(body,solids,options={}){return escapePenetration(body,solids,options,limitsFor(body,options));}
++
++export function moveBody(body, dx, dy, solids, options={}) {
++  const bounds=limitsFor(body,options),contacts=[];
++  escapePenetration(body,solids,options,bounds);
++  for(let iteration=0;iteration<4&&(Math.abs(dx)>1e-9||Math.abs(dy)>1e-9);iteration++){
++    let hit=null;
++    for(const b of solids){if(b.hp<=0)continue;const candidate=sweepBox(body,dx,dy,b);if(candidate&&(!hit||candidate.time<hit.time))hit=candidate;}
++    for(let axis=0;axis<2;axis++){
++      const start=axis?body.y:body.x,delta=axis?dy:dx,lo=axis?bounds.top:bounds.left,hi=axis?bounds.bottom:bounds.right;
++      if(!delta)continue;const crossing=delta<0?start+delta<lo:start+delta>hi;
++      if(!crossing)continue;const time=((delta<0?lo:hi)-start)/delta;
++      if(time>=0&&time<=1&&(!hit||time<hit.time))hit={time,nx:axis?0:(delta<0?1:-1),ny:axis?(delta<0?1:-1):0,box:null};
++    }
++    if(!hit){body.x+=dx;body.y+=dy;break;}
++    const separation=hit.box?SKIN:0;
++    body.x+=dx*hit.time+hit.nx*separation;body.y+=dy*hit.time+hit.ny*separation;
++    contacts.push(hit);dx*=1-hit.time;dy*=1-hit.time;
++    if(hit.nx)dx=0;if(hit.ny)dy=0;
++  }
++  body.x=Math.max(bounds.left,Math.min(bounds.right,body.x));body.y=Math.max(bounds.top,Math.min(bounds.bottom,body.y));
++  return contacts;
++}
++
++const FLOOR_SUPPORT={id:null,y:610};
++export function supportAt(body, solids, ground=610) {
++  const feet=body.y+body.h/2;
++  if(Math.abs(feet-ground)<.02)return ground===610?FLOOR_SUPPORT:{id:null,y:ground};
++  for(const b of solids)if(b.hp>0&&Math.abs(feet-(b.y-b.h/2))<.02&&Math.abs(body.x-b.x)<(body.w+b.w)/2-SKIN)return {id:b.id,y:b.y-b.h/2};
++  return null;
++}
+--- a/dist/index.html
++++ b/dist/index.html
+@@ -17,7 +17,7 @@
+   </header>
+   <main>
+     <div class="game-wrap" id="game-wrap">
+-      <canvas id="game" width="1280" height="720" aria-label="Abduction game landscape"></canvas>
++      <canvas id="game" tabindex="0" width="1280" height="720" aria-label="Abduction game landscape"></canvas>
+       <div class="scene-vignette" aria-hidden="true"></div>
+       <div class="screen" id="screen"></div>
+       <div class="hud hidden" id="hud">
+--- a/dist/progression.js
++++ b/dist/progression.js
+@@ -9,6 +9,8 @@
+ const boundedInteger = (value, fallback = 0, maximum = MAX_VALUE) =>
+   typeof value === 'number' && Number.isFinite(value)
+     ? Math.min(maximum, Math.max(0, Math.floor(value))) : fallback;
++const boundedMultiplier = value => typeof value === 'number' && Number.isFinite(value)
++  ? Math.min(10, Math.max(0, Math.floor(value * 2) / 2)) : 0;
+ 
+ export function defaultSave() {
+   return {
+@@ -46,7 +48,7 @@
+     save.best[mission.id] = {
+       score: boundedInteger(best.score),
+       captured: boundedInteger(best.captured),
+-      maxCombo: boundedInteger(best.maxCombo),
++      maxCombo: boundedMultiplier(best.maxCombo),
+       objectives: Array.isArray(best.objectives)
+         ? [...new Set(best.objectives.filter(key => mission.goals.some(goal => goal.key === key)))] : []
+     };
+@@ -84,9 +86,21 @@
+   const target = getStorage(storage);
+   const normalized = normalizeSave(save);
+   if (!target || !normalized) return false;
++  // Loading an older backup is safe; writing over a newer schema is not.
++  const unsupported = key => {
++    let text;
++    try { text = target.getItem(key); } catch { return true; }
++    try {
++      const record = JSON.parse(text);
++      return isRecord(record) && record.version !== undefined && ![0,1].includes(record.version);
++    } catch { return false; }
++  };
++  if (unsupported(SAVE_KEY)) return false;
+   const previous = readSave(target, SAVE_KEY);
+   const backup = previous ?? readSave(target, BACKUP_KEY) ?? normalized;
+-  try { target.setItem(BACKUP_KEY, JSON.stringify(backup)); } catch { /* Main save may still fit. */ }
++  if (!unsupported(BACKUP_KEY)) {
++    try { target.setItem(BACKUP_KEY, JSON.stringify(backup)); } catch { /* Main save may still fit. */ }
++  }
+   try {
+     target.setItem(SAVE_KEY, JSON.stringify(normalized));
+     return true;
+@@ -128,7 +142,7 @@
+   payout.collection = Math.floor(boundedInteger(stats.credits) * (won ? 1 : 0.5));
+   payout.mission = won ? 400 + mission.id * 150 + (firstClear ? 500 : 0) : 0;
+   payout.objectives = newlyAchieved.length * 350;
+-  payout.performance = won ? Math.min(10, boundedInteger(stats.maxCombo)) * 50 : 0;
++  payout.performance = won ? boundedMultiplier(stats.maxCombo) * 50 : 0;
+   payout.total = payout.collection + payout.mission + payout.objectives + payout.performance;
+   save.credits = boundedInteger(save.credits + payout.total);
+   save.career.captured = boundedInteger(save.career.captured + boundedInteger(stats.captured));
+@@ -136,7 +150,7 @@
+   save.best[mission.id] = {
+     score: Math.max(priorBest.score, payout.total),
+     captured: Math.max(priorBest.captured, boundedInteger(stats.captured)),
+-    maxCombo: Math.max(priorBest.maxCombo, boundedInteger(stats.maxCombo)),
++    maxCombo: Math.max(priorBest.maxCombo, boundedMultiplier(stats.maxCombo)),
+     objectives: [...new Set([...priorBest.objectives, ...achieved.map(goal => goal.key)])]
+   };
+   let newUnlock = null;
+--- a/dist/render.js
++++ b/dist/render.js
+@@ -189,7 +189,7 @@
+ }
+ 
+ function shadow(c,e) {
+-  if(e.kind==='plane'||e.dead||!Number.isFinite(e.x)||!Number.isFinite(e.y))return;
++  if(e.kind==='plane'||e.state==='sheltered'||e.dead||!Number.isFinite(e.x)||!Number.isFinite(e.y))return;
+   const altitude=Math.max(0,WORLD.ground-e.y-(e.h||24)/2);
+   c.save();c.globalAlpha=Math.max(.07,.22-altitude*.0005);oval(c,e.x,WORLD.ground+2,(e.w||20)*.48*(1+altitude*.001),3+Math.min(5,(e.w||20)*.05),'#061e29');c.restore();
+ }
+@@ -302,7 +302,7 @@
+ }
+ 
+ function entity(c,e,time) {
+-  if(!Number.isFinite(e.x)||!Number.isFinite(e.y)||e.dead||e.physical==='captured'||e.physical==='dead')return;
++  if(!Number.isFinite(e.x)||!Number.isFinite(e.y)||e.dead||e.state==='sheltered'||e.physical==='captured'||e.physical==='dead')return;
+   if(e.kind==='cow')cow(c,e,time);
+   else if(e.kind==='rock')rock(c,e);
+   else if(e.kind==='truck')truck(c,e,time);
+--- a/dist/sim.js
++++ b/dist/sim.js
+@@ -1,4 +1,5 @@
+ import { WORLD, EMPTY_UPGRADES } from './config.js';
++import { moveBody, depenetrate, supportAt, sweepBox, segmentHit } from './collision.js';
+ 
+ // The entire simulation is independent of the DOM and uses seconds and world units.
+ const TAU = Math.PI * 2;
+@@ -46,29 +47,13 @@
+   if (game.particles.length > 240) game.particles.splice(0, game.particles.length - 240);
+ }
+ 
+-// Liang–Barsky segment clipping includes thin obstacles without frame-rate dependence.
+-function segmentIntersectsBox(x1, y1, x2, y2, box, pad = 0) {
+-  const minX = box.x - box.w / 2 - pad;
+-  const maxX = box.x + box.w / 2 + pad;
+-  const minY = box.y - box.h / 2 - pad;
+-  const maxY = box.y + box.h / 2 + pad;
+-  const dx = x2 - x1;
+-  const dy = y2 - y1;
+-  let start = 0;
+-  let end = 1;
+-  const p = [-dx, dx, -dy, dy];
+-  const q = [x1 - minX, maxX - x1, y1 - minY, maxY - y1];
+-  for (let i = 0; i < 4; i++) {
+-    if (Math.abs(p[i]) < 1e-8) {
+-      if (q[i] < 0) return false;
+-    } else {
+-      const ratio = q[i] / p[i];
+-      if (p[i] < 0) start = Math.max(start, ratio);
+-      else end = Math.min(end, ratio);
+-      if (start > end) return false;
+-    }
+-  }
+-  return true;
++function segmentIntersectsBox(x1,y1,x2,y2,box,pad=0) {
++  return Boolean(segmentHit(x1,y1,x2,y2,box,pad));
++}
++
++function movingHit(x1,y1,x2,y2,box,pad=0) {
++  const px=box.previousX ?? box.x, py=box.previousY ?? box.y;
++  return segmentHit(x1,y1,x2-(box.x-px),y2-(box.y-py),{x:px,y:py,w:box.w,h:box.h},pad);
+ }
+ 
+ export function hasLineOfSight(game, x1, y1, x2, y2, options = {}) {
+@@ -107,6 +92,10 @@
+     direction: game.random() < .5 ? -1 : 1, flash: 0, reacquire: 0,
+     spawnGrace: 1.5, attackProgress: 0, wasCarried: false, ...extra,
+   };
++  if (kind !== 'plane' && !(kind === 'truck' && ['enter','leave'].includes(entity.state))) {
++    depenetrate(entity,game.buildings,{horizontalOnly:entity.physical==='grounded'});
++  }
++  entity.previousX=entity.x;entity.previousY=entity.y;
+   game.entities.push(entity);
+   return entity;
+ }
+@@ -145,7 +134,7 @@
+     camera: 0, entities: [], projectiles: [], particles: [], texts: [], events: [],
+     populationReserve: mission.population, populationSpawned: 0,
+     beamFeedback: 'HOLD TO COLLECT', comboTimer: 0, shake: 0,
+-    ufo: { x: 420, y: 305, vx: 0, vy: 0, hp: 50 + levels.armour * 10,
++    ufo: { x: 420, y: 305, w: 70, h: 42, vx: 0, vy: 0, hp: 50 + levels.armour * 10,
+       maxHp: 50 + levels.armour * 10, angle: 0, beamAngle: 0, beamOn: false,
+       load: 0, capacity: 30 + levels.capacity * 10, invulnerable: 0 },
+     stats: { captured: 0, destroyed: 0, rockKills: 0, planesDown: 0, combo: 1,
+@@ -185,19 +174,10 @@
+   const responsiveness = 7.5 + game.upgrades.engine * .5;
+   ufo.vx = approach(ufo.vx, moveX * speed, moveX ? responsiveness : 6.4, dt);
+   ufo.vy = approach(ufo.vy, moveY * speed, moveY ? responsiveness : 6.4, dt);
+-  ufo.x += ufo.vx * dt;
+-  ufo.y += ufo.vy * dt;
+-  if (ufo.x < 48 || ufo.x > WORLD.width - 48) ufo.vx = 0;
+-  if (ufo.y < 74 || ufo.y > WORLD.ground - 70) ufo.vy = 0;
+-  ufo.x = clamp(ufo.x, 48, WORLD.width - 48);
+-  ufo.y = clamp(ufo.y, 74, WORLD.ground - 70);
+-  for (const building of game.buildings) {
+-    if (building.hp > 0 && Math.abs(ufo.x - building.x) < building.w / 2 + 35 &&
+-        ufo.y + 21 > building.y - building.h / 2) {
+-      ufo.y = building.y - building.h / 2 - 21;
+-      ufo.vy = Math.min(0, ufo.vy);
+-    }
+-  }
++  ufo.previousX=ufo.x;ufo.previousY=ufo.y;
++  const contacts=moveBody(ufo,ufo.vx*dt,ufo.vy*dt,game.buildings,
++    {limits:{left:48,right:WORLD.width-48,top:74,bottom:WORLD.ground-70}});
++  for(const contact of contacts){if(contact.nx)ufo.vx=0;if(contact.ny)ufo.vy=0;}
+   ufo.angle = approach(ufo.angle, clamp(ufo.vx / speed * .17, -.17, .17), 9, dt);
+   if (Number.isFinite(input.aimX) && Number.isFinite(input.aimY)) {
+     const desired = clamp(Math.atan2(input.aimX - ufo.x, Math.max(1, input.aimY - ufo.y)), -BEAM_LIMIT, BEAM_LIMIT);
+@@ -251,7 +231,7 @@
+   const sy = Math.cos(ufo.beamAngle);
+   let full = false;
+   let blocked = false;
+-  const candidates = game.entities.filter(entity => !entity.dead && entity.kind !== 'plane' && entity.physical !== 'lifted')
++  const candidates = game.entities.filter(entity => !entity.dead && entity.kind !== 'plane' && entity.physical !== 'lifted' && entity.state !== 'sheltered')
+     .sort((a, b) => distance(ufo, a) - distance(ufo, b));
+   for (const entity of candidates) {
+     const dx = entity.x - ufo.x;
+@@ -325,8 +305,8 @@
+   if (gap > 0) {
+     entity.vx = dx / gap * Math.min(pull, gap / dt);
+     entity.vy = dy / gap * Math.min(pull, gap / dt);
+-    entity.x += dx / gap * Math.min(gap, maxStep);
+-    entity.y += dy / gap * Math.min(gap, maxStep);
++    const contacts=moveBody(entity,dx/gap*Math.min(gap,maxStep),dy/gap*Math.min(gap,maxStep),game.buildings);
++    if(contacts.length)game.beamFeedback='CARGO BLOCKED · CHANGE POSITION';
+   }
+   entity.carried = !entity.collectible && gap < 25;
+   entity.rotation = (entity.rotation || 0) + dt * (entity.collectible ? 1.4 : .3);
+@@ -335,7 +315,7 @@
+ 
+ export function damageUfo(game, amount = 10, source = 'projectile') {
+   const ufo = game.ufo;
+-  if (game.status !== 'playing' || ufo.invulnerable > 0) return false;
++  if (game.status !== 'playing' || ufo.invulnerable > 0 || !Number.isFinite(amount) || amount <= 0) return false;
+   const damage = Math.round(amount * game.challenge);
+   ufo.hp = Math.max(0, ufo.hp - damage);
+   ufo.invulnerable = 1.5;
+@@ -422,16 +402,17 @@
+   }
+ }
+ 
+-function bossCargoImpact(game, entity, previousY) {
++function bossCargoImpact(game, entity, previousX, previousY) {
+   const boss = game.boss;
+-  if (!boss || boss.hp <= 0 || !entity.wasCarried || entity.vy < 70 || entity.impactGrace > 0) return false;
+-  const hitY = boss.coreY - 35;
+-  if (Math.abs(entity.x - boss.x) > boss.w / 2 + entity.w / 3 ||
+-      entity.y + entity.h / 2 < hitY || previousY - entity.h / 2 > boss.coreY + 65) return false;
++  if (!boss || boss.hp <= 0 || !entity.wasCarried || entity.vy < 70 || entity.bossCooldown > 0) return false;
++  const hit=sweepBox({x:previousX,y:previousY,w:entity.w,h:entity.h},entity.x-previousX,entity.y-previousY,
++    {x:boss.coreX,y:boss.coreY,w:boss.coreRadius*2,h:70});
++  if(!hit)return false;
+   if (!boss.vulnerable) {
+     entity.vy = -140;
+     entity.vx = entity.x < boss.x ? -170 : 170;
+-    entity.impactGrace = .7;
++    entity.bossCooldown = .7;
++    entity.y = boss.coreY - 35 - entity.h/2 - .01;
+     label(game, boss.x, boss.y - 165, 'ARMOURED · WAIT FOR THE GLOW', '#e0bd80');
+     return true;
+   }
+@@ -454,72 +435,43 @@
+ }
+ 
+ function updateAirborne(game, entity, dt) {
+-  const previousY = entity.y;
+-  entity.vy += GRAVITY * dt;
+-  entity.x += entity.vx * dt;
+-  entity.y += entity.vy * dt;
+-  entity.rotation = (entity.rotation || 0) + entity.vx * dt * .008;
+-  if (entity.x < entity.w / 2 || entity.x > WORLD.width - entity.w / 2) {
+-    entity.x = clamp(entity.x, entity.w / 2, WORLD.width - entity.w / 2);
+-    entity.vx *= -.3;
+-  }
+-  if (CARGO.has(entity.kind)) {
+-    if (bossCargoImpact(game, entity, previousY) && entity.dead) return;
+-    if (entity.harmful && entity.impactGrace <= 0 && distance(entity, game.ufo) < 42) {
+-      damageUfo(game, 10, 'boss charge');
+-      destroyCargo(game, entity);
+-      return;
+-    }
+-    if (entity.wasCarried && entity.vy > 140) {
+-      for (const target of game.entities) {
+-        if (target === entity || target.dead || !target.collectible || target.physical === 'lifted') continue;
+-        if (Math.abs(entity.x - target.x) < (entity.w + target.w) / 2 &&
+-            Math.abs(entity.y - target.y) < (entity.h + target.h) / 2 + 5) destroyCharacter(game, target, true);
++  const previousX=entity.x,previousY=entity.y;
++  entity.vy+=GRAVITY*dt;
++  const impactVx=entity.vx,impactVy=entity.vy;
++  const contacts=moveBody(entity,entity.vx*dt,entity.vy*dt,game.buildings);
++  entity.rotation=(entity.rotation||0)+impactVx*dt*.008;
++  if(CARGO.has(entity.kind)){
++    if(bossCargoImpact(game,entity,previousX,previousY)&&entity.dead)return;
++    if(entity.harmful&&entity.impactGrace<=0&&movingHit(previousX,previousY,entity.x,entity.y,game.ufo,entity.w/2)){
++      damageUfo(game,10,'boss charge');destroyCargo(game,entity);return;
++    }
++    if(entity.wasCarried&&impactVy>140){
++      for(const target of game.entities){
++        if(target===entity||target.dead||!target.collectible||target.physical==='lifted'||target.state==='sheltered')continue;
++        const hit=sweepBox({x:previousX,y:previousY,w:entity.w,h:entity.h},entity.x-previousX,entity.y-previousY,target);
++        if(hit)destroyCharacter(game,target,true);
+       }
+     }
+-    if (entity.vy > 120 && entity.wasCarried && entity.impactGrace <= 0) {
+-      for (const building of game.buildings) {
+-        const roof = building.y - building.h / 2;
+-        if (building.hp > 0 && Math.abs(entity.x - building.x) < (entity.w + building.w) / 2 &&
+-            previousY + entity.h / 2 <= roof + 8 && entity.y + entity.h / 2 >= roof) {
+-          damageBuilding(game, building, entity.kind === 'truck' ? 3 : entity.kind === 'bomb' ? 2 : 1);
+-          if (entity.kind === 'bomb') { destroyCargo(game, entity, true); return; }
+-          entity.vy = -Math.min(150, entity.vy * .3);
+-          entity.vx += entity.x < building.x ? -100 : 100;
+-          entity.y = roof - entity.h / 2;
+-          entity.impactGrace = .4;
+-          break;
+-        }
+-      }
+-    }
+-  }
+-  if (entity.y + entity.h / 2 >= WORLD.ground) {
+-    const landingSpeed = entity.vy;
+-    entity.y = WORLD.ground - entity.h / 2;
+-    entity.vy = 0;
+-    entity.harmful = false;
+-    if (entity.collectible) {
+-      if (landingSpeed > 570 && !entity.safeLanding) {
+-        destroyCharacter(game, entity, false);
+-        return;
+-      }
+-      entity.physical = 'stunned';
+-      entity.state = 'recover';
+-      entity.timer = .8 + Math.min(1, landingSpeed / 550);
+-      entity.vx *= .25;
+-      entity.safeLanding = false;
+-    } else if (entity.kind === 'bomb' && entity.wasCarried && landingSpeed > 250) {
+-      destroyCargo(game, entity, true);
+-    } else {
+-      entity.physical = 'grounded';
+-      entity.state = entity.kind === 'truck' ? 'stopped' : 'idle';
+-      entity.vx = 0;
+-      if (landingSpeed > 250) burst(game, entity.x, WORLD.ground, '#c1c8a0', 8, 80);
+-      if (entity.kind === 'bomb') {
+-        entity.fuse = 18;
+-        label(game, entity.x, entity.y - 30, 'LIFT & RETURN', '#c5ff90');
+-      }
+-    }
++    for(const contact of contacts){
++      if(!contact.box||!entity.wasCarried||Math.hypot(impactVx,impactVy)<120||entity.impactGrace>0)continue;
++      damageBuilding(game,contact.box,entity.kind==='truck'?3:entity.kind==='bomb'?2:1);
++      if(entity.kind==='bomb'){destroyCargo(game,entity,true);return;}
++      entity.impactGrace=.4;
++    }
++  }
++  const floor=contacts.find(c=>c.ny<0);
++  for(const contact of contacts){if(contact.nx)entity.vx=-impactVx*.3;if(contact.ny>0)entity.vy=Math.max(0,entity.vy);}
++  if(!floor)return;
++  entity.vy=0;entity.harmful=false;
++  if(entity.collectible){
++    if(impactVy>570&&!entity.safeLanding){destroyCharacter(game,entity,false);return;}
++    entity.physical='stunned';entity.state='recover';entity.timer=.8+Math.min(1,impactVy/550);
++    entity.vx*=.25;entity.safeLanding=false;
++  }else if(entity.kind==='bomb'&&entity.wasCarried&&impactVy>250){destroyCargo(game,entity,true);}
++  else{
++    entity.physical='grounded';entity.state=entity.kind==='truck'?'stopped':'idle';entity.vx=0;
++    if(impactVy>250)burst(game,entity.x,entity.y+entity.h/2,'#c1c8a0',8,80);
++    if(entity.kind==='bomb'){entity.fuse=18;label(game,entity.x,entity.y-30,'LIFT & RETURN','#c5ff90');}
+   }
+ }
+ 
+@@ -535,81 +487,71 @@
+   return null;
+ }
+ 
++function shelterEntrance(entity, building) {
++  const side=entity.x<building.x?-1:1;
++  return {x:building.x+side*((building.w+entity.w)/2+.02),side};
++}
++
++function canWalkTo(game,entity,x,ignoredId=null) {
++  return !game.buildings.some(b=>b.hp>0&&b.id!==ignoredId&&
++    sweepBox(entity,x-entity.x,0,b));
++}
++
+ function updateCivilian(game, entity, dt) {
+-  const ufo = game.ufo;
+-  entity.timer -= dt;
+-  const visible = Math.abs(entity.x - ufo.x) < 430 && distance(entity, ufo) < 560 &&
+-    hasLineOfSight(game, entity.x, entity.y - entity.h / 2, ufo.x, ufo.y);
+-  if (entity.state === 'sheltered') {
+-    entity.vx = 0;
+-    const shelter = game.buildings.find(building => building.id === entity.shelterId && building.hp > 0);
+-    if (!shelter || entity.timer <= 0) {
+-      entity.shelterId = null;
+-      entity.state = 'flee';
+-      entity.timer = 2;
+-      entity.shelterCooldown = 7;
+-      entity.direction = entity.x < ufo.x ? -1 : 1;
+-      if (shelter) entity.x = shelter.x + entity.direction * (shelter.w / 2 + 20);
++  const ufo=game.ufo;entity.timer-=dt;
++  const visible=Math.abs(entity.x-ufo.x)<430&&distance(entity,ufo)<560&&
++    hasLineOfSight(game,entity.x,entity.y-entity.h/2,ufo.x,ufo.y);
++  if(entity.state==='sheltered'){
++    entity.vx=0;
++    const shelter=game.buildings.find(b=>b.id===entity.shelterId&&b.hp>0);
++    if(!shelter||entity.timer<=0){
++      entity.shelterId=null;entity.state='flee';entity.timer=2;entity.shelterCooldown=7;
++      entity.direction=entity.entranceSide||(entity.x<ufo.x?-1:1);
+     }
+     return;
+   }
+-  if (visible && (entity.state === 'idle' || entity.state === 'walk')) {
+-    entity.state = 'alert';
+-    entity.timer = randomBetween(game, .35, .7);
+-    entity.vx = 0;
+-  }
+-  if (entity.state === 'alert' && entity.timer <= 0) {
+-    entity.state = 'flee';
+-    entity.timer = 1.8;
+-    entity.direction = entity.x < ufo.x ? -1 : 1;
+-    const shelters = game.buildings.filter(building => building.hp > 0 && Math.abs(building.x - entity.x) < 500 &&
+-      (!entity.shelterCooldown || entity.shelterCooldown <= 0));
+-    shelters.sort((a, b) => Math.abs(a.x - entity.x) - Math.abs(b.x - entity.x));
+-    entity.shelterId = shelters[0]?.id ?? null;
+-  }
+-  if (entity.state === 'flee') {
+-    const shelter = game.buildings.find(building => building.id === entity.shelterId && building.hp > 0);
+-    if (shelter) {
+-      entity.direction = shelter.x > entity.x ? 1 : -1;
+-      if (Math.abs(shelter.x - entity.x) < shelter.w / 2 - 12) {
+-        entity.state = 'sheltered';
+-        entity.timer = randomBetween(game, 5, 8);
+-        entity.vx = 0;
+-        return;
++  if(visible&&(entity.state==='idle'||entity.state==='walk')){
++    entity.state='alert';entity.timer=randomBetween(game,.35,.7);entity.vx=0;
++  }
++  if(entity.state==='alert'&&entity.timer<=0){
++    entity.state='flee';entity.timer=1.8;entity.direction=entity.x<ufo.x?-1:1;
++    const shelters=game.buildings.filter(b=>b.hp>0&&b.shelter&&Math.abs(b.x-entity.x)<500&&
++      entity.shelterCooldown<=0&&canWalkTo(game,entity,shelterEntrance(entity,b).x,b.id));
++    shelters.sort((a,b)=>Math.abs(a.x-entity.x)-Math.abs(b.x-entity.x));
++    entity.shelterId=shelters[0]?.id??null;
++  }
++  if(entity.state==='flee'){
++    const shelter=game.buildings.find(b=>b.id===entity.shelterId&&b.hp>0);
++    const entrance=shelter?shelterEntrance(entity,shelter):null;
++    if(shelter&&canWalkTo(game,entity,entrance.x,shelter.id)){
++      entity.direction=entrance.x>entity.x?1:-1;
++      if(Math.abs(entrance.x-entity.x)<3){
++        entity.state='sheltered';entity.timer=randomBetween(game,5,8);entity.vx=0;entity.entranceSide=entrance.side;return;
+       }
+-    } else if (entity.timer <= 0) {
+-      if (!visible) { entity.state = 'idle'; entity.timer = randomBetween(game, 1, 3); }
+-      else { entity.direction = entity.x < ufo.x ? -1 : 1; entity.timer = 1.8; }
+-    }
+-    entity.vx = entity.direction * entity.speed * (entity.kind === 'cow' ? 1.15 : 1.5);
+-  } else if (entity.state === 'idle' && entity.timer <= 0) {
+-    entity.state = 'walk';
+-    entity.direction = game.random() < .5 ? -1 : 1;
+-    entity.timer = randomBetween(game, 1.2, 2.8);
+-  } else if (entity.state === 'walk') {
+-    entity.vx = entity.direction * entity.speed * .5;
+-    if (entity.timer <= 0) { entity.state = 'idle'; entity.timer = randomBetween(game, .8, 2); entity.vx = 0; }
+-  } else if (entity.state !== 'flee') entity.vx = 0;
+-  moveGroundEntity(game, entity, dt, Boolean(entity.shelterId));
+-}
+-
+-function moveGroundEntity(game, entity, dt, enteringShelter = false) {
+-  const previousX = entity.x;
+-  entity.x += entity.vx * dt;
+-  if (entity.x < 22 || entity.x > WORLD.width - 22) {
+-    entity.x = clamp(entity.x, 22, WORLD.width - 22);
+-    entity.direction *= -1;
+-    entity.timer = Math.min(entity.timer, .6);
+-  }
+-  if (!enteringShelter) {
+-    for (const building of game.buildings) {
+-      if (building.hp > 0 && Math.abs(entity.x - building.x) < building.w / 2 + entity.w / 2 - 3) {
+-        entity.x = previousX;
+-        entity.direction *= -1;
+-        entity.timer = Math.min(entity.timer, .65);
+-        break;
++    }else{
++      if(entity.shelterId){entity.shelterId=null;entity.shelterCooldown=2;entity.direction=entity.x<ufo.x?-1:1;entity.timer=1.8;}
++      if(entity.timer<=0){
++        if(!visible){entity.state='idle';entity.timer=randomBetween(game,1,3);}
++        else{entity.direction=entity.x<ufo.x?-1:1;entity.timer=1.8;}
+       }
+     }
++    entity.vx=entity.direction*entity.speed*(entity.kind==='cow'?1.15:1.5);
++    if(entrance&&entity.shelterId)entity.vx=Math.sign(entity.vx)*Math.min(Math.abs(entity.vx),Math.abs(entrance.x-entity.x)/dt);
++  }else if(entity.state==='idle'&&entity.timer<=0){
++    entity.state='walk';entity.direction=game.random()<.5?-1:1;entity.timer=randomBetween(game,1.2,2.8);
++  }else if(entity.state==='walk'){
++    entity.vx=entity.direction*entity.speed*.5;
++    if(entity.timer<=0){entity.state='idle';entity.timer=randomBetween(game,.8,2);entity.vx=0;}
++  }else if(entity.state!=='flee')entity.vx=0;
++  moveGroundEntity(game,entity,dt);
++}
++
++function moveGroundEntity(game, entity, dt) {
++  const contacts=moveBody(entity,entity.vx*dt,0,game.buildings,{horizontalOnly:true});
++  if(contacts.some(c=>c.nx)){
++    entity.vx=0;entity.direction=contacts.find(c=>c.nx).nx;entity.timer=Math.max(entity.timer,.5);
++    if(entity.kind==='agent'){entity.state='patrol';entity.memory=0;entity.timer=.7;entity.blockedUntil=game.time+.8;}
++    if(entity.shelterId){entity.shelterId=null;entity.shelterCooldown=2;}
+   }
+ }
+ 
+@@ -732,7 +674,7 @@
+   }
+   if (entity.state === 'idle' || entity.state === 'alert') entity.state = 'patrol';
+   if (visible && entity.kind === 'gunner') entity.vx = 0;
+-  else if (entity.kind === 'agent' && entity.memory > 0) {
++  else if (entity.kind === 'agent' && entity.memory > 0 && (entity.blockedUntil||0)<=game.time) {
+     // Agents reposition based on their last sighting, not hidden live coordinates.
+     const separation = entity.lastSeenX - entity.x;
+     entity.direction = separation > 0 ? 1 : -1;
+@@ -746,33 +688,35 @@
+ }
+ 
+ function updateTruck(game, entity, dt) {
+-  if (entity.state === 'enter' || entity.state === 'leave') {
+-    entity.vx = entity.direction * (entity.state === 'leave' ? 125 : 95);
+-    entity.x += entity.vx * dt;
+-    if (entity.state === 'enter' && Math.abs(entity.x - entity.dropX) < 15) {
+-      entity.state = 'stopped';
+-      entity.vx = 0;
+-      entity.timer = 4.5;
+-      entity.unloadTimer = 1.3;
+-    }
+-    if (entity.state === 'leave' && (entity.x < -150 || entity.x > WORLD.width + 150)) entity.dead = true;
+-  } else if (entity.state === 'stopped') {
+-    entity.vx = 0;
+-    entity.timer -= dt;
+-    if (entity.passengers) {
+-      entity.unloadTimer -= dt;
+-      if (entity.unloadTimer <= 0) unloadTruck(game, entity);
+-    }
+-    if (entity.timer <= 0 && !entity.wasCarried) entity.state = 'leave';
+-  }
++  if(entity.state==='enter'||entity.state==='leave'){
++    entity.vx=entity.direction*(entity.state==='leave'?125:95);
++    const contacts=moveBody(entity,entity.vx*dt,0,game.buildings,{allowOutsideX:true});
++    const blocked=contacts.some(c=>c.nx);
++    if(entity.state==='enter'&&(blocked||Math.abs(entity.x-entity.dropX)<15)){
++      entity.state='stopped';entity.vx=0;entity.timer=4.5;entity.unloadTimer=1.3;
++      if(blocked)entity.direction*=-1;
++    }else if(entity.state==='leave'&&blocked)entity.direction*=-1;
++    if(entity.state==='leave'&&(entity.x < -150||entity.x>WORLD.width+150))entity.dead=true;
++  }else if(entity.state==='stopped'){
++    entity.vx=0;entity.timer-=dt;
++    if(entity.passengers){entity.unloadTimer-=dt;if(entity.unloadTimer<=0)unloadTruck(game,entity);}
++    if(entity.timer<=0&&!entity.wasCarried)entity.state='leave';
++  }
++}
++
++function movingBodyHit(body,previousX,previousY,target) {
++  const px=target.previousX??target.x,py=target.previousY??target.y;
++  return sweepBox({x:previousX,y:previousY,w:body.w,h:body.h},
++    body.x-previousX-(target.x-px),body.y-previousY-(target.y-py),{x:px,y:py,w:target.w,h:target.h});
+ }
+ 
+ function updatePlane(game, entity, dt) {
++  const startX=entity.x,startY=entity.y;
+   entity.x += entity.vx * dt;
+   entity.y += Math.sin(game.time * 2 + entity.id) * dt * 3;
+   for (const cargo of game.entities) {
+     if (cargo === entity || cargo.dead || !CARGO.has(cargo.kind) || cargo.physical === 'grounded') continue;
+-    if (Math.abs(cargo.x - entity.x) < (cargo.w + entity.w) / 2 && Math.abs(cargo.y - entity.y) < (cargo.h + entity.h) / 2) {
++    if (movingBodyHit(entity,startX,startY,cargo)) {
+       entity.dead = true;
+       game.stats.planesDown++;
+       game.stats.credits += 300;
+@@ -784,7 +728,7 @@
+       return;
+     }
+   }
+-  if (Math.abs(entity.x - game.ufo.x) < 70 && Math.abs(entity.y - game.ufo.y) < 30) {
++  if (movingBodyHit(entity,startX,startY,game.ufo)) {
+     damageUfo(game, 15, 'aircraft');
+     entity.dead = true;
+     burst(game, entity.x, entity.y, '#ffba7d', 18, 190);
+@@ -795,12 +739,17 @@
+ function updateEntities(game, dt) {
+   let cargoSlot = 0;
+   // Copy the array so unloaded passengers begin updating on the next tick.
+-  for (const entity of [...game.entities]) {
++  const count=game.entities.length;
++  for(let index=0;index<count;index++){const entity=game.entities[index];entity.previousX=entity.x;entity.previousY=entity.y;}
++  for (let index=0;index<count;index++) {
++    const entity=game.entities[index];
++    if(game.status!=='playing')break;
+     if (entity.dead) continue;
+     entity.flash = Math.max(0, entity.flash - dt);
+     entity.reacquire = Math.max(0, entity.reacquire - dt);
+     entity.spawnGrace = Math.max(0, entity.spawnGrace - dt);
+     entity.impactGrace = Math.max(0, (entity.impactGrace || 0) - dt);
++    entity.bossCooldown = Math.max(0,(entity.bossCooldown||0)-dt);
+     entity.shelterCooldown = Math.max(0, (entity.shelterCooldown || 0) - dt);
+     entity.thinkTimer -= dt;
+     if (entity.physical === 'lifted') {
+@@ -809,10 +758,14 @@
+       continue;
+     }
+     if (entity.physical === 'airborne') { updateAirborne(game, entity, dt); continue; }
++    if(entity.kind!=='plane'&&entity.state!=='sheltered'&&!supportAt(entity,game.buildings)){
++      entity.physical='airborne';entity.state='falling';cancelAttack(entity);
++      updateAirborne(game,entity,dt);continue;
++    }
+     if (entity.physical === 'stunned') {
+       entity.timer -= dt;
+       entity.vx = approach(entity.vx, 0, 10, dt);
+-      entity.x = clamp(entity.x + entity.vx * dt, 22, WORLD.width - 22);
++      moveBody(entity,entity.vx*dt,0,game.buildings);
+       if (entity.timer <= 0) {
+         entity.physical = 'grounded';
+         entity.state = 'idle';
+@@ -834,49 +787,41 @@
+ 
+ function updateProjectiles(game, dt) {
+   for (const projectile of game.projectiles) {
+-    if (projectile.dead) continue;
+-    const previousX = projectile.x;
+-    const previousY = projectile.y;
+-    projectile.life -= dt;
+-    if (projectile.tracking > 0) {
+-      const angle = Math.atan2(projectile.vy, projectile.vx);
+-      const desired = Math.atan2(game.ufo.y - projectile.y, game.ufo.x - projectile.x);
+-      const next = angle + clamp(angleDifference(desired, angle), -projectile.turnRate * dt, projectile.turnRate * dt);
+-      const speed = projectile.speed || Math.hypot(projectile.vx, projectile.vy);
+-      projectile.vx = Math.cos(next) * speed;
+-      projectile.vy = Math.sin(next) * speed;
+-      projectile.tracking = Math.max(0, projectile.tracking - dt);
+-    }
+-    projectile.vy += (projectile.gravity || 0) * dt;
+-    projectile.x += projectile.vx * dt;
+-    projectile.y += projectile.vy * dt;
+-    projectile.rotation = (projectile.rotation || 0) + dt * 7;
+-    if (projectile.life <= 0 || projectile.x < -150 || projectile.x > WORLD.width + 150 ||
+-        projectile.y < -200 || projectile.y > WORLD.ground) { projectile.dead = true; continue; }
+-    for (const building of game.buildings) {
+-      if (building.hp > 0 && segmentIntersectsBox(previousX, previousY, projectile.x, projectile.y, building, projectile.radius)) {
+-        projectile.dead = true;
+-        burst(game, projectile.x, projectile.y, '#f4bb7d', 4, 55);
+-        break;
++    if(projectile.dead)continue;
++    if(game.status!=='playing')break;
++    const previousX=projectile.x,previousY=projectile.y;
++    const travel=Math.min(dt,Math.max(0,projectile.life));
++    if(projectile.tracking>0){
++      const angle=Math.atan2(projectile.vy,projectile.vx),desired=Math.atan2(game.ufo.y-projectile.y,game.ufo.x-projectile.x);
++      const turn=projectile.turnRate*Math.min(travel,projectile.tracking);
++      const next=angle+clamp(angleDifference(desired,angle),-turn,turn),speed=projectile.speed||Math.hypot(projectile.vx,projectile.vy);
++      projectile.vx=Math.cos(next)*speed;projectile.vy=Math.sin(next)*speed;
++      projectile.tracking=Math.max(0,projectile.tracking-travel);
++    }
++    projectile.vy+=(projectile.gravity||0)*travel;projectile.x+=projectile.vx*travel;projectile.y+=projectile.vy*travel;
++    projectile.life-=dt;projectile.rotation=(projectile.rotation||0)+dt*7;
++    let earliest=null;
++    const check=(box,type,moving=false)=>{
++      const hit=moving?movingHit(previousX,previousY,projectile.x,projectile.y,box,projectile.radius):segmentHit(previousX,previousY,projectile.x,projectile.y,box,projectile.radius);
++      if(hit&&(!earliest||hit.time<earliest.time))earliest={...hit,target:box,type};
++    };
++    if(travel>0){
++      for(const b of game.buildings)if(b.hp>0)check(b,'building');
++      for(const cargo of game.entities)if(!cargo.dead&&CARGO.has(cargo.kind)&&cargo.id!==projectile.owner)check(cargo,'cargo',true);
++      check(game.ufo,'ufo',true);
++    }
++    if(earliest){
++      projectile.x=previousX+(projectile.x-previousX)*earliest.time;projectile.y=previousY+(projectile.y-previousY)*earliest.time;projectile.dead=true;
++      if(earliest.type==='ufo')damageUfo(game,projectile.damage||10,projectile.kind);
++      else{
++        burst(game,projectile.x,projectile.y,earliest.type==='cargo'?'#cbff92':'#f4bb7d',5,65);
++        if(earliest.type==='cargo'){
++          earliest.target.flash=.16;
++          if(earliest.target.kind==='bomb'&&earliest.target.physical!=='lifted')destroyCargo(game,earliest.target);
++        }
+       }
+     }
+-    if (projectile.dead) continue;
+-    for (const cargo of game.entities) {
+-      if (cargo.dead || !CARGO.has(cargo.kind) || cargo.id === projectile.owner) continue;
+-      if (segmentIntersectsBox(previousX, previousY, projectile.x, projectile.y, cargo, projectile.radius)) {
+-        projectile.dead = true;
+-        cargo.flash = .16;
+-        burst(game, projectile.x, projectile.y, '#cbff92', 6, 75);
+-        if (cargo.kind === 'bomb' && cargo.physical !== 'lifted') destroyCargo(game, cargo);
+-        break;
+-      }
+-    }
+-    if (projectile.dead) continue;
+-    if (segmentIntersectsBox(previousX, previousY, projectile.x, projectile.y,
+-        { x: game.ufo.x, y: game.ufo.y, w: 70, h: 32 }, projectile.radius)) {
+-      projectile.dead = true;
+-      damageUfo(game, projectile.damage || 10, projectile.kind);
+-    }
++    if(projectile.life<=0||projectile.x< -150||projectile.x>WORLD.width+150||projectile.y< -200||projectile.y>WORLD.ground)projectile.dead=true;
+   }
+ }
+ 
+@@ -1031,6 +976,10 @@
+   if (game.status === 'playing') updateProjectiles(game, dt);
+   if (game.status === 'playing') updateBoss(game, dt);
+   updateEffects(game, dt);
++  for(const building of game.buildings)building.occupancy=0;
++  for(const entity of game.entities)if(!entity.dead&&entity.state==='sheltered'){
++    const building=game.buildings.find(b=>b.id===entity.shelterId&&b.hp>0);if(building)building.occupancy++;
++  }
+   game.entities = game.entities.filter(entity => !entity.dead);
+   game.projectiles = game.projectiles.filter(projectile => !projectile.dead);
+   game.ufo.load = game.entities.reduce((sum, entity) => sum + (entity.physical === 'lifted' ? entity.load : 0), 0);
+--- a/dist/styles.css
++++ b/dist/styles.css
+@@ -7,3 +7,14 @@
+ 
+ .home h1 span{font-size:.27em;letter-spacing:.23em;line-height:1.4;margin-top:13px}.home .edition{font-size:12px;letter-spacing:2.8px;margin:12px 0 18px}.home h1{margin-bottom:0}
+ @media(max-width:760px){.home h1 span{font-size:.28em;letter-spacing:.16em;margin-top:9px}.home .edition{font-size:8px;letter-spacing:1.8px;margin:12px 0}}
++
++/* Audit: contain the drawable viewport and keep all short-screen menus reachable. */
++#game{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);object-fit:fill}
++.game-wrap:fullscreen .screen{max-width:none;max-height:none}
++.home{overflow-y:auto}.location-tag,.signal-label{pointer-events:none}
++.modal-layer{overscroll-behavior:contain}.modal{min-height:0}
++@media(max-width:760px){.meter-block>div:first-child{font-size:8px;letter-spacing:.2px}.meter-block strong{font-size:8px}.hud-feedback{font-size:8px}.home{justify-content:flex-start;padding-top:8%}.menu-head{flex-wrap:wrap;gap:12px}.mission-detail{flex-wrap:wrap}}
++@media(max-width:480px){.home h1{font-size:clamp(32px,10vw,48px)}.home .eyebrow{font-size:6px}.home p{font-size:10px;margin-bottom:15px}.home-meta{margin-bottom:12px}.location-tag{display:none}.home-actions{gap:16px}.home .primary{padding:11px 13px}.results{grid-template-columns:1fr;align-items:start}.modal-layer{padding:10px}.modal{padding:16px}.meter-block{width:72px}.hud-stats{gap:10px}}
++@media(max-width:480px){.game-wrap{aspect-ratio:1/1.1}.topbar{gap:12px}.brand{font-size:20px}.brand svg{width:25px}.balance{white-space:nowrap;flex-shrink:0}.header-actions{flex-shrink:0}}
++
++.audit-metrics{position:fixed;bottom:0;left:0;right:0;z-index:100;background:#061b25eb;color:#bdf6a9;padding:6px;font:10px/1.4 monospace;overflow-wrap:anywhere;pointer-events:none}
+--- /dev/null
++++ b/scripts/archive.py
+@@ -0,0 +1,22 @@
++"""Package only known game sources, audit evidence, and the standalone release."""
++from pathlib import Path
++from zipfile import ZipFile, ZIP_DEFLATED
++import os
++
++root = Path(__file__).resolve().parent.parent
++paths = [root / name for name in ("README.md", "CONTRACT.md", "AUDIT_REPORT.md", "package.json", ".gitignore")]
++allowed = {".js", ".mjs", ".json", ".html", ".css", ".txt", ".png", ".py", ".md", ".diff"}
++for directory in ("dist", "tests", "scripts", "audit"):
++    paths.extend(path for path in (root / directory).rglob("*") if path.is_file() and path.suffix in allowed and "__pycache__" not in path.parts)
++paths.append(root / "release" / "Abduction-Midnight-Harvest.html")
++output = root / "release" / "Abduction-Midnight-Harvest-source.zip"
++temporary = output.with_suffix(".zip.tmp")
++with ZipFile(temporary, "w", ZIP_DEFLATED) as archive:
++    for path in sorted(set(paths)):
++        archive.write(path, "abduction-game/" + str(path.relative_to(root)))
++with ZipFile(temporary) as archive:
++    failed = archive.testzip()
++    if failed:
++        raise RuntimeError("Archive verification failed: " + failed)
++os.replace(temporary, output)
++print(f"Verified source archive: {output} ({output.stat().st_size:,} bytes)")
+--- a/scripts/package.mjs
++++ b/scripts/package.mjs
+@@ -6,7 +6,7 @@
+ // Small dependency-free packager for these known modules. The output is playable
+ // directly from disk: all game scripts, artwork, styles and audio are embedded.
+ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
+-const names=['config','sim','render','progression','audio','app'];
++const names=['config','collision','sim','render','progression','audio','app'];
+ let bundle='const __modules = {};\n';
+ for(const name of names){
+   let code=await readFile(path.join(root,'dist',`${name}.js`),'utf8');
+@@ -17,10 +17,17 @@
+   bundle+=`\n__modules[${JSON.stringify(name)}] = (() => {\n${code}\nreturn {${exports.join(',')}};\n})();\n`;
+ }
+ new vm.Script(bundle,{filename:'standalone-game.js'});
+-const css=(await readFile(path.join(root,'dist','styles.css'),'utf8')).replace(/^@import[^;]+;\s*/,'');
++// The font URL itself contains semicolons. Remove its entire import line,
++// otherwise a partial URL corrupts the first CSS rule and all theme variables.
++const css=(await readFile(path.join(root,'dist','styles.css'),'utf8')).replace(/^@import[^\r\n]*\r?\n/,'');
+ let html=await readFile(path.join(root,'dist','index.html'),'utf8');
+-html=html.replace('<link rel="stylesheet" href="styles.css">',`<style>${css}</style>`)
+-  .replace('<script type="module" src="app.js"></script>',`<script>\n${bundle.replace(/<\/script/gi,'<\\/script')}\n</script>`);
++// A replacement callback inserts source literally. Replacement strings interpret
++// dollar-sign sequences in game messages as substitution commands.
++html=html.replace('<link rel="stylesheet" href="styles.css">',()=>`<style>${css}</style>`)
++  .replace('<script type="module" src="app.js"></script>',()=>`<script>\n${bundle.replace(/<\/script/gi,'<\\/script')}\n</script>`);
++const embedded=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
++if(!embedded)throw new Error('The standalone script was not embedded.');
++new vm.Script(embedded,{filename:'Abduction-Midnight-Harvest.html'});
+ await mkdir(path.join(root,'release'),{recursive:true});
+ const output=path.join(root,'release','Abduction-Midnight-Harvest.html');
+ await writeFile(output,html);
+--- /dev/null
++++ b/scripts/profile.mjs
+@@ -0,0 +1,27 @@
++import {performance} from 'node:perf_hooks';
++import {pathToFileURL,fileURLToPath} from 'node:url';
++import path from 'node:path';
++const directory=process.argv[2]?path.resolve(process.argv[2]):fileURLToPath(new URL('../dist/',import.meta.url));
++const {createGame,stepGame}=await import(pathToFileURL(path.join(directory,'sim.js')));
++const {MISSIONS}=await import(pathToFileURL(path.join(directory,'config.js')));
++if(!global.gc)throw new Error('Run this profiler with node --expose-gc.');
++let ticks=0,totalTime=0;const histogram=new Uint32Array(2001),heaps=[],peaks={entities:0,projectiles:0,particles:0,texts:0,events:0};
++function session(run,measure){
++  const game=createGame({mission:MISSIONS[run%5],seed:100+run,upgrades:{armour:3,engine:3}});
++  for(let frame=0;frame<7200&&game.status==='playing';frame++){
++    const started=performance.now();stepGame(game,{moveX:Math.sin(frame/180),moveY:Math.cos(frame/150)*.25,beam:frame%400<300,aimX:game.ufo.x,aimY:610},1/60);
++    if(measure){const duration=performance.now()-started;totalTime+=duration;histogram[Math.min(2000,Math.floor(duration*1000))]++;ticks++;
++      for(const key in peaks)peaks[key]=Math.max(peaks[key],game[key].length);}
++    game.events.length=0;
++  }
++}
++for(let run=0;run<5;run++)session(run,false);
++global.gc();heaps.push(process.memoryUsage().heapUsed);
++for(let batch=0;batch<3;batch++){
++  for(let run=batch*10;run<batch*10+10;run++)session(run,true);
++  global.gc();heaps.push(process.memoryUsage().heapUsed);
++}
++function percentile(p){let count=0;for(let i=0;i<histogram.length;i++){count+=histogram[i];if(count>=ticks*p)return i/1000;}return 2;}
++console.log(JSON.stringify({source:directory,node:process.version,scenario:'30 seeded missions; 5 warmups; explicit GC between 10-run batches',ticks,
++  averageMs:totalTime/ticks,p50Ms:percentile(.5),p95Ms:percentile(.95),p99Ms:percentile(.99),
++  percentileOverflow:'Durations above 2ms share the final bucket',peaks,postGcHeapBytes:heaps},null,2));
+--- /dev/null
++++ b/tests/audio.test.mjs
+@@ -0,0 +1,41 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {Sound} from '../dist/audio.js';
++// Unit-level Web Audio boundary. Actual output-device listening is a separate check.
++class Param{setValueAtTime(){} exponentialRampToValueAtTime(){} setTargetAtTime(){} cancelScheduledValues(){}}
++class AudioNode{
++  constructor(){this.gain=new Param();this.frequency=new Param();this.disconnected=false;this.started=[];this.stopped=[];}
++  connect(){} disconnect(){this.disconnected=true;} start(t){this.started.push(t);} stop(t){this.stopped.push(t);}
++}
++class Context{
++  constructor(){this.state='running';this.currentTime=1;this.destination={};this.nodes=[];}
++  createGain(){const n=new AudioNode();this.nodes.push(n);return n;}
++  createOscillator(){const n=new AudioNode();this.nodes.push(n);return n;}
++  resume(){this.state='running';return Promise.resolve();}close(){this.state='closed';return Promise.resolve();}
++}
++test('AUDIO-001: finished voices disconnect, and repeated events have a bounded voice count',()=>{
++  const ctx=new Context(),sound=new Sound({createContext:()=>ctx});sound.unlock();
++  for(let i=0;i<100;i++)sound.play('capture');
++  assert.ok(sound.voices.size<=16);
++  for(const n of ctx.nodes)if(n.onended)n.onended();
++  assert.equal(sound.voices.size,0);
++  assert.ok(ctx.nodes.slice(1).every(n=>n.disconnected));
++});
++test('AUDIO-002: scene changes and mute cancel every scheduled victory note and beam source',()=>{
++  const ctx=new Context(),sound=new Sound({createContext:()=>ctx});sound.unlock();sound.play('win');sound.setBeam(true);
++  const oscillators=ctx.nodes.filter(n=>n.started.length);assert.equal(oscillators.length,5);
++  sound.stopTransient();assert.equal(sound.voices.size,0);assert.equal(sound.beam,null);
++  for(const n of oscillators)assert.ok(n.stopped.length);
++  sound.setEnabled(false);sound.play('hit');assert.equal(ctx.nodes.filter(n=>n.started.length).length,5);
++});
++test('AUDIO-003: a rejected browser resume is reported once without an unhandled rejection',async()=>{
++  const ctx=new Context();ctx.state='suspended';ctx.resume=()=>Promise.reject(new Error('device unavailable'));
++  const errors=[],sound=new Sound({createContext:()=>ctx,onError:error=>errors.push(error.message)});
++  sound.unlock();sound.unlock();await new Promise(resolve=>setImmediate(resolve));
++  assert.deepEqual(errors,['device unavailable']);sound.dispose();
++});
++test('AUDIO-004: an audio-device failure during beam creation cannot stop the game loop',()=>{
++  const ctx=new Context(),errors=[],sound=new Sound({createContext:()=>ctx,onError:e=>errors.push(e.message)});sound.unlock();
++  ctx.createOscillator=()=>{throw new Error('output device lost');};
++  assert.doesNotThrow(()=>sound.setBeam(true));assert.equal(sound.beam,null);assert.deepEqual(errors,['output device lost']);
++});
+--- /dev/null
++++ b/tests/audit-physics.test.mjs
+@@ -0,0 +1,110 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {createGame,spawnEntity,stepGame} from '../dist/sim.js';
++import {MISSIONS,WORLD} from '../dist/config.js';
++import {moveBody,depenetrate,overlaps as collisionOverlap} from '../dist/collision.js';
++const DT=1/60;
++function arena(){const g=createGame({mission:MISSIONS[0],seed:41});g.entities=[];g.buildings=[];g.populationReserve=1;g.director.nextTruck=g.director.nextPlane=9999;return g;}
++const building=(x=500,w=100)=>({id:999,x,y:550,w,h:120,hp:3,maxHp:3,flash:0,shelter:true});
++const overlaps=(a,b)=>Math.abs(a.x-b.x)<(a.w+b.w)/2-.001&&Math.abs(a.y-b.y)<(a.h+b.h)/2-.001;
++function advance(g,seconds,input={}){for(let i=0;i<Math.ceil(seconds/DT);i++)stepGame(g,input,DT);}
++
++test('PHYS-001: side contact stops the ship without teleporting it onto the roof',()=>{
++  const g=arena();g.buildings=[building(850,140)];Object.assign(g.ufo,{x:743,y:530,vx:400});
++  stepGame(g,{moveX:1},DT);
++  assert.ok(g.ufo.x<=745.01);assert.ok(Math.abs(g.ufo.y-530)<.01);
++});
++test('PHYS-002: fast airborne cargo sweeps building sides rather than crossing them',()=>{
++  for(const vx of [600,12000,60000]){
++    const g=arena();g.buildings=[building()];const e=spawnEntity(g,'rock',400,550,{physical:'airborne',vx,vy:0});
++    advance(g,.15);assert.ok(e.x+e.w/2<=450.01,`speed ${vx}`);assert.ok(!overlaps(e,g.buildings[0]));
++  }
++});
++test('PHYS-003: released people land on roofs, recover, and fall if support disappears',()=>{
++  const g=arena();g.buildings=[building()];const e=spawnEntity(g,'gunner',500,400,{physical:'airborne',vy:0});
++  advance(g,1);assert.ok(e.y+e.h/2<=490.01);assert.equal(e.physical,'stunned');
++  g.buildings[0].hp=0;advance(g,.8);assert.ok(e.y>490);assert.ok(e.y+e.h/2<=WORLD.ground+.01);
++});
++test('PHYS-004: beam cargo obeys the floor and world edges while the UFO hovers low',()=>{
++  const g=arena();Object.assign(g.ufo,{x:48,y:540,beamAngle:-.6});const e=spawnEntity(g,'rock',48,590,{physical:'lifted'});
++  advance(g,1,{beam:true,aimX:-200,aimY:610});
++  assert.ok(e.y+e.h/2<=WORLD.ground+.01);assert.ok(e.x-e.w/2>=-.01);
++});
++test('PHYS-005: an incoming projectile hits the first surface, including a nearer UFO',()=>{
++  const g=arena();Object.assign(g.ufo,{x:300,y:300});g.buildings=[{...building(600),y:300,h:100}];
++  g.projectiles=[{x:100,y:300,vx:36000,vy:0,life:2,radius:4,kind:'bullet'}];
++  stepGame(g,{},DT);assert.equal(g.ufo.hp,40);
++});
++test('PHYS-006: a fast projectile cannot skip a hit by ending outside the stage',()=>{
++  const g=arena();Object.assign(g.ufo,{x:300,y:300});g.projectiles=[{x:100,y:300,vx:300000,vy:0,life:2,radius:4,kind:'bullet'}];
++  stepGame(g,{},DT);assert.equal(g.ufo.hp,40);
++});
++test('PHYS-007: high-speed dropped cargo cannot tunnel through a defender',()=>{
++  const g=arena();const defender=spawnEntity(g,'gunner',600,undefined,{timer:999,spawnGrace:999});
++  spawnEntity(g,'rock',600,400,{physical:'airborne',wasCarried:true,vy:30000});
++  stepGame(g,{},DT);assert.equal(defender.dead,true);assert.equal(g.stats.rockKills,1);
++});
++test('PHYS-008: every initial non-sheltered actor spawns outside solid buildings',()=>{
++  for(const mission of MISSIONS)for(let seed=1;seed<=10;seed++){
++    const g=createGame({mission,seed});for(const e of g.entities)assert.ok(!g.buildings.some(b=>overlaps(e,b)),`${mission.id}/${seed}/${e.kind}`);
++  }
++});
++test('PHYS-009: a lifted rock cannot cut horizontally through a building',()=>{
++  const g=arena();g.buildings=[building()];Object.assign(g.ufo,{x:650,y:460});const e=spawnEntity(g,'rock',400,550,{physical:'lifted',carried:true});
++  for(let i=0;i<120;i++){stepGame(g,{beam:true,aimX:650,aimY:610},DT);assert.ok(!overlaps(e,g.buildings[0]));}
++});
++test('AI-001: shelter routing cannot disable collisions with an intervening building',()=>{
++  const g=arena();g.ufo.x=100;g.ufo.y=250;g.buildings=[building(500),{...building(750),id:1000}];
++  const e=spawnEntity(g,'civilian',400,undefined,{state:'flee',shelterId:1000,timer:5});
++  for(let i=0;i<180;i++){stepGame(g,{},DT);assert.ok(!overlaps(e,g.buildings[0]));}
++});
++test('AI-002: transports stop before blocked roads and unload safely',()=>{
++  const g=arena();g.buildings=[building()];const truck=spawnEntity(g,'truck',350,undefined,{state:'enter',direction:1,dropX:700,vx:95,passengers:2});
++  for(let i=0;i<300;i++){stepGame(g,{},DT);assert.ok(!overlaps(truck,g.buildings[0]));}
++  assert.equal(truck.passengers,0);assert.ok(g.entities.filter(e=>e.collectible).length===2);
++});
++test('AI-003: a sheltered civilian is protected, counted, and exits when its shelter breaks',()=>{
++  const g=arena(),b=building();g.buildings=[b];
++  const e=spawnEntity(g,'civilian',439,undefined,{state:'flee',shelterId:b.id,timer:10});
++  stepGame(g,{},DT);assert.equal(e.state,'sheltered');assert.equal(b.occupancy,1);
++  Object.assign(g.ufo,{x:e.x,y:350});advance(g,.3,{beam:true,aimX:e.x,aimY:610});
++  assert.equal(e.state,'sheltered');assert.equal(e.physical,'grounded');
++  b.hp=0;stepGame(g,{},DT);assert.equal(e.state,'flee');assert.equal(e.shelterId,null);
++});
++test('AI-004: an agent follows a blocked last sighting without vibrating against the wall',()=>{
++  const g=arena();g.buildings=[building()];Object.assign(g.ufo,{x:800,y:200});
++  const agent=spawnEntity(g,'agent',437,undefined,{state:'patrol',memory:2,lastSeenX:700,lastSeenY:200,timer:2,spawnGrace:999});
++  advance(g,.7);assert.ok(agent.x<430,'a blocked route must produce movement away from the obstruction');
++});
++test('PHYS-010: corners, thin walls and overlapping geometry resolve without penetration',()=>{
++  const solids=[{x:300,y:450,w:8,h:320,hp:3},{x:345,y:580,w:100,h:20,hp:3},{x:350,y:580,w:80,h:20,hp:3}];
++  const body={x:250,y:300,w:24,h:36};moveBody(body,400,400,solids);
++  assert.ok(solids.every(s=>!collisionOverlap(body,s)));
++  const embedded={x:340,y:580,w:24,h:36};depenetrate(embedded,solids);
++  assert.ok(solids.every(s=>!collisionOverlap(embedded,s)));
++  const corridor=[{x:400,y:500,w:20,h:220,hp:3},{x:450,y:500,w:20,h:220,hp:3}];
++  const actor={x:425,y:300,w:24,h:36};moveBody(actor,0,1000,corridor);
++  assert.ok(corridor.every(s=>!collisionOverlap(actor,s)));assert.ok(actor.y+actor.h/2<=610.01);
++});
++test('PHYS-011: fast aircraft use their actual swept shape for cargo and ship impacts',()=>{
++  const g=arena();Object.assign(g.ufo,{x:700,y:200});
++  const plane=spawnEntity(g,'plane',100,200,{vx:60000,state:'fly'});
++  stepGame(g,{},DT);assert.equal(plane.dead,true);assert.equal(g.ufo.hp,35);
++  const clear=arena();Object.assign(clear.ufo,{x:700,y:300});
++  spawnEntity(clear,'plane',100,200,{vx:60000,state:'fly'});stepGame(clear,{},DT);assert.equal(clear.ufo.hp,50);
++});
++test('PHYS-012: seeded gameplay keeps non-scripted bodies outside solid geometry and bounds',()=>{
++  for(let seed=1;seed<=10;seed++){
++    const g=createGame({mission:MISSIONS[(seed-1)%5],seed,upgrades:{armour:3,engine:4,capacity:4,suction:4}});
++    for(let i=0;i<1800&&g.status==='playing';i++){
++      stepGame(g,{moveX:Math.sin(i/81),moveY:Math.cos(i/67),beam:i%200<170,aimX:g.ufo.x+Math.sin(i/30)*300,aimY:610},DT);
++      assert.ok(!g.buildings.some(b=>b.hp>0&&overlaps(g.ufo,b)));
++      for(const e of g.entities){
++        if(e.kind==='plane'||(e.kind==='truck'&&['enter','leave'].includes(e.state)))continue;
++        assert.ok([e.x,e.y,e.vx,e.vy].every(Number.isFinite));
++        assert.ok(e.y+e.h/2<=WORLD.ground+.01);assert.ok(e.x>=e.w/2-.01&&e.x<=WORLD.width-e.w/2+.01);
++        assert.ok(!g.buildings.some(b=>b.hp>0&&overlaps(e,b)),`${seed}/${i}/${e.kind}/${e.state}`);
++      }
++    }
++  }
++});
+--- /dev/null
++++ b/tests/client.test.mjs
+@@ -0,0 +1,91 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFileSync} from 'node:fs';
++import vm from 'node:vm';
++import * as config from '../dist/config.js';
++import * as sim from '../dist/sim.js';
++import * as progression from '../dist/progression.js';
++
++// Execute the real client and simulation against a minimal DOM/audio boundary.
++// Layout and actual browser behavior are verified separately in the browser.
++function client({width=1280,height=720,dpr=1,canvasAvailable=true,observer=true}={}){
++  const registry=new Map(),raf=[],timers=new Map(),logs=[],renders=[];
++  let document;
++  class Element{
++    constructor(id='',tag='div'){this.id=id;this.tagName=tag;this.style={};this.listeners={};this.attributes={};this.controls=[];this.captures=new Set();this.isConnected=true;this.width=1280;this.height=720;const classes=new Set();this.classList={add:x=>classes.add(x),remove:x=>classes.delete(x),contains:x=>classes.has(x),toggle:(x,v)=>v?classes.add(x):classes.delete(x)};}
++    set innerHTML(value){this.html=value;this.controls=[];for(const m of value.matchAll(/<(button|select|input|div)\b([^>]*)>/g)){
++      const id=m[2].match(/id="([^"]+)"/)?.[1]||'',element=new Element(id,m[1]);
++      element.disabled=/\bdisabled\b/.test(m[2]);if(id)registry.set(id,element);if(m[1]!=='div')this.controls.push(element);
++    }}
++    get innerHTML(){return this.html;}
++    get firstElementChild(){return this.child??=new Element();}
++    addEventListener(type,handler){(this.listeners[type]??=[]).push(handler);}
++    emit(type,event={}){const e={target:this,currentTarget:this,button:0,pointerId:1,pointerType:'mouse',preventDefault(){this.prevented=true;},...event};for(const handler of this.listeners[type]||[])handler(e);return e;}
++    getBoundingClientRect(){const w=this.id==='game'?parseFloat(this.style.width)||width:width,h=this.id==='game'?parseFloat(this.style.height)||height:height;return {left:(width-w)/2,top:(height-h)/2,width:w,height:h};}
++    setAttribute(name,value){this.attributes[name]=value;}getAttribute(name){return this.attributes[name]??null;}
++    getContext(){return canvasAvailable?{setTransform(){}}:null;}
++    focus(){document.activeElement=this;}
++    querySelector(){return this.controls[0]??null;}
++    querySelectorAll(){return this.controls.filter(e=>!e.disabled);}
++    contains(e){return this.controls.includes(e);}
++    matches(selector){return selector.split(',').some(s=>s===this.tagName);}
++    setPointerCapture(id){this.captures.add(id);}hasPointerCapture(id){return this.captures.has(id);}releasePointerCapture(id){this.captures.delete(id);}
++  }
++  for(const match of readFileSync(new URL('../dist/index.html',import.meta.url),'utf8').matchAll(/id="([^"]+)"/g))registry.set(match[1],new Element(match[1],match[1]==='game'?'canvas':'div'));
++  const wrap=registry.get('game-wrap');wrap.clientWidth=width;wrap.clientHeight=height;
++  const outside=[new Element('header'),new Element('footer')];
++  document=new Element('document');document.activeElement=document;document.getElementById=id=>registry.get(id);document.querySelectorAll=()=>outside;
++  const window=new Element('window');window.devicePixelRatio=dpr;window.location={reload(){}};
++  class SilentSound{unlock(){}setEnabled(){}setBeam(){}play(){}stopTransient(){}dispose(){}}
++  const storage=new Map();
++  const context=vm.createContext({document,window,console:{error:(...v)=>logs.push(v),warn:(...v)=>logs.push(v)},Date,Math,Set,
++    localStorage:{getItem:k=>storage.get(k)??null,setItem:(k,v)=>storage.set(k,v)},
++    requestAnimationFrame:callback=>raf.push(callback),setTimeout:callback=>{const id=timers.size+1;timers.set(id,callback);return id;},clearTimeout:id=>timers.delete(id),
++    ...(observer?{ResizeObserver:class{observe(){}}}:{}),
++    dependencies:{config,sim,progression,render:{render:(...args)=>renders.push(args[2])},audio:{Sound:SilentSound}}});
++  let source=readFileSync(new URL('../dist/app.js',import.meta.url),'utf8');
++  source=source.replace(/import\s*\{([^}]+)\}\s*from\s*['"]\.\/([^'"]+)\.js['"];?/g,(_,names,module)=>`const {${names}}=dependencies.${module};`);
++  source+='\nglobalThis.audit={startGame,openModal,closeModal,resetInput,resizeCanvas,frame,showHome,showMissions,get state(){return {scene,paused,modal,game,pointer,touch,stickPointer,beamPointer:typeof beamPointer==="undefined"?null:beamPointer,canvasPointer:typeof canvasPointer==="undefined"?null:canvasPointer,viewportWidth:typeof viewportWidth==="undefined"?canvas.width:viewportWidth,frameFailed:typeof frameFailed==="undefined"?false:frameFailed,save};}};';
++  vm.runInContext(source,context,{filename:'app.js'});
++  return {api:context.audit,window,document,registry,outside,logs,renders,flush(){for(const callback of raf.splice(0))callback(0);}};
++}
++
++test('UI-001: Escape closes settings even when its select has focus; nested settings return to pause',()=>{
++  const c=client();c.api.openModal('settings');c.flush();const select=c.registry.get('difficulty-select');select.focus();
++  c.window.emit('keydown',{key:'Escape',target:select});assert.equal(c.api.state.modal,null);
++  c.api.startGame();c.api.openModal('pause');c.api.openModal('settings');c.api.closeModal();
++  assert.equal(c.api.state.modal,'pause');assert.equal(c.api.state.paused,true);
++  c.api.closeModal();assert.equal(c.api.state.paused,false);assert.equal(c.document.activeElement.id,'game');
++});
++test('UI-002: modal focus wraps within the dialog and isolates header/footer actions',()=>{
++  const c=client();c.api.openModal('settings');c.flush();const modal=c.registry.get('modal-layer'),first=modal.controls[0],last=modal.controls.at(-1);first.focus();
++  c.window.emit('keydown',{key:'Tab',shiftKey:true,target:first});assert.equal(c.document.activeElement,last);
++  assert.ok(c.outside.every(e=>e.inert));c.api.closeModal();assert.ok(c.outside.every(e=>!e.inert));
++});
++test('UI-003: unrelated fingers and right clicks cannot interrupt a mouse beam',()=>{
++  const c=client();c.api.startGame();const canvas=c.registry.get('game');
++  canvas.emit('pointerdown',{button:2,pointerId:1,clientX:600,clientY:600});assert.equal(c.api.state.pointer.down,false);
++  canvas.emit('pointerdown',{button:0,pointerId:1,clientX:600,clientY:600});
++  c.window.emit('pointerup',{pointerId:2});assert.equal(c.api.state.pointer.down,true);
++  canvas.emit('lostpointercapture',{pointerId:1});assert.equal(c.api.state.pointer.down,false);
++});
++test('UI-004: pause clears touch ownership so a held finger cannot restart motion on resume',()=>{
++  const c=client();c.api.startGame();const stick=c.registry.get('touch-stick');
++  stick.emit('pointerdown',{pointerId:9,clientX:100,clientY:100});assert.equal(c.api.state.stickPointer,9);
++  c.api.openModal('pause');c.api.closeModal();stick.emit('pointermove',{pointerId:9,clientX:500,clientY:500});
++  assert.equal(c.api.state.touch.x,0);assert.equal(c.api.state.touch.y,0);assert.equal(c.api.state.stickPointer,null);
++});
++test('UI-005: retina and ultrawide pointer coordinates use drawable logical pixels, not backing pixels',()=>{
++  const c=client({width:5000,height:500,dpr:2});c.api.startGame();const canvas=c.registry.get('game'),r=canvas.getBoundingClientRect();
++  canvas.emit('pointermove',{clientX:r.left+r.width/2,clientY:r.top+r.height/2});
++  assert.equal(c.api.state.viewportWidth,2400);assert.equal(canvas.width,Math.round(r.width*2));
++  assert.ok(Math.abs(c.api.state.pointer.x-1200)<.001);assert.ok(Math.abs(c.api.state.pointer.y-360)<.001);
++});
++test('UI-006: pause freezes both gameplay time and animation time; resize fallback can start',()=>{
++  const c=client({observer:false});c.api.startGame();c.api.frame(1000);c.api.openModal('pause');const time=c.api.state.game.time;
++  c.api.frame(5000);assert.equal(c.api.state.game.time,time);assert.equal(c.renders.at(-1).time,time);
++});
++test('CRASH-001: missing Canvas support produces a visible recovery screen and reports the cause',()=>{
++  const c=client({canvasAvailable:false});assert.equal(c.api.state.frameFailed,true);
++  assert.match(c.registry.get('screen').innerHTML,/Reload game/);assert.equal(c.logs.length,1);
++});
+--- /dev/null
++++ b/tests/package.test.mjs
+@@ -0,0 +1,17 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {execFileSync} from 'node:child_process';
++import {readFileSync} from 'node:fs';
++import vm from 'node:vm';
++test('BUILD-001: the final standalone HTML preserves literal dollar messages and executable code',()=>{
++  const root=new URL('../',import.meta.url);
++  execFileSync(process.execPath,['scripts/package.mjs'],{cwd:root});
++  const html=readFileSync(new URL('../release/Abduction-Midnight-Harvest.html',import.meta.url),'utf8');
++  const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
++  assert.ok(script);assert.doesNotThrow(()=>new vm.Script(script));
++  assert.ok(script.includes("'CARGO HIT +$'"));
++  assert.ok(!/<script[^>]+src=/.test(html));assert.ok(!/@import/.test(html));
++  const css=html.match(/<style>([\s\S]*?)<\/style>/)?.[1];
++  assert.ok(css?.startsWith(':root{'),'BUILD-002: removing remote fonts must preserve the complete theme rule');
++  assert.ok(css.includes('--bg:#071b22'));
++});
+--- a/tests/progression.test.mjs
++++ b/tests/progression.test.mjs
+@@ -8,6 +8,19 @@
+   return { getItem: key => data.get(key) ?? null, setItem: (key, value) => data.set(key, value), data };
+ }
+ const run = (overrides = {}) => ({ mission: MISSIONS[0], status: 'won', stats: { credits: 1000, captured: 10, rockKills: 2, maxCombo: 5 }, ...overrides });
++
++test('SAVE-001: older code cannot overwrite a future-version save after loading its backup',()=>{
++  const future=JSON.stringify({version:2,credits:9999,upgrades:{engine:2}});
++  const storage=memoryStorage({[SAVE_KEY]:future,[BACKUP_KEY]:JSON.stringify(defaultSave())});
++  const save=loadSave(storage);save.settings.sound=false;
++  assert.equal(persistSave(save,storage),false);
++  assert.equal(storage.getItem(SAVE_KEY),future);
++});
++test('SAVE-002: half-step multipliers survive results, saving and reward calculation',()=>{
++  const result=completeMission(defaultSave(),run({stats:{credits:100,captured:3,maxCombo:1.5}}));
++  assert.equal(result.payout.performance,75);assert.equal(result.save.best[1].maxCombo,1.5);
++  const storage=memoryStorage();persistSave(result.save,storage);assert.equal(loadSave(storage).best[1].maxCombo,1.5);
++});
+ const freeze = value => {
+   Object.freeze(value);
+   for (const child of Object.values(value)) if (child && typeof child === 'object' && !Object.isFrozen(child)) freeze(child);

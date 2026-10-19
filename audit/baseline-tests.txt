@@ -1,0 +1,43 @@
+✔ a fresh campaign can unlock every mission, buy earned upgrades, beat ATLAS, and reload the ending (642.864584ms)
+✔ the boss can be beaten with carried cargo across different encounter seeds (80.054417ms)
+✔ fresh progress is independent and safe without browser storage (2.54875ms)
+✔ corrupt main save recovers the last good backup without deleting either record (0.507416ms)
+✔ save recovery validates fields, clamps levels and migrates a legacy record (0.289667ms)
+✔ unknown versions and unavailable storage recover safely (0.225875ms)
+✔ persist saves a previous valid record before replacing it (0.1475ms)
+✔ purchases spend exactly once, stay immutable, and enforce funds and level limits (0.363583ms)
+✔ first clear grants transparent payout, unlock, and goal credit without double processing (0.448ms)
+✔ replays keep normal earnings but optional goals and first clear pay only once (0.248833ms)
+✔ an optional goal completed on a later replay gets its one-time award (0.190584ms)
+✔ failed runs retain half collections, with no unlock or objective award (0.321417ms)
+✔ unfinished or unrecognized missions cannot pay, and the boss unlock never exceeds the campaign (0.232458ms)
+✔ all scene themes and physical states render with finite geometry and balanced transforms (171.384375ms)
+✔ narrow touch viewports keep the UFO visible at both edges of the world (5.097458ms)
+✔ lifting a committed defender cancels the shot before release (0.547584ms)
+✔ released defenders fall, land stunned, and recover before making decisions (2.997ms)
+✔ beam capacity limits simultaneous specimens and gives full feedback (0.534083ms)
+✔ retained cargo blocks extraction behind it and can be carried without being collected (2.012333ms)
+✔ a hit drops held cargo and grants protection from repeated immediate damage (0.576167ms)
+✔ solid buildings and carried cover block perception; broken buildings stop blocking (0.213ms)
+✔ cover intercepts a fast projectile before it can cross into the UFO (0.337791ms)
+✔ losing sight during preparation cancels an attack and retains only brief memory (1.089458ms)
+✔ a committed shot retains its aim when the UFO dodges and fires exactly once (1.191625ms)
+✔ homing has a bounded turn rate and stops tracking after its allowed duration (0.729292ms)
+✔ the director prevents overlapping homing preparations and creates recovery windows (5.15675ms)
+✔ new arrivals receive a grace period before starting an attack (0.748792ms)
+✔ aircraft arrive only after a visible warning countdown (1.95825ms)
+✔ finite population is conserved when reserves move into a transport and unload (21.386916ms)
+✔ dropped cargo defeats ground defenders and increments the cargo challenge (0.468125ms)
+✔ boss phases change once per health threshold and preserve an exposed state (0.398583ms)
+✔ boss armour deflects cargo while its exposed core takes damage and can end the campaign (1.12375ms)
+✔ normal missions accept survival or a population clear; the boss requires defeating ATLAS (0.246916ms)
+✔ all five upgrades change their advertised mechanics (2.121625ms)
+✔ seeded simulation is reproducible, finite, and clamps flight and beam boundaries (7.55025ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 821.22375
