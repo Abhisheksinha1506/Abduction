@@ -89,3 +89,12 @@ test('CRASH-001: missing Canvas support produces a visible recovery screen and r
   const c=client({canvasAvailable:false});assert.equal(c.api.state.frameFailed,true);
   assert.match(c.registry.get('screen').innerHTML,/Reload game/);assert.equal(c.logs.length,1);
 });
+test('UI-007: results mark optional contracts complete only when the shift is won',()=>{
+  const goalsDone=status=>{
+    const c=client();c.api.startGame();const game=c.api.state.game;
+    Object.assign(game.stats,{captured:10,rockKills:2});game.status=status;c.api.frame(1000);
+    return (c.registry.get('screen').innerHTML.match(/goal-result done/g)||[]).length;
+  };
+  assert.equal(goalsDone('won'),2);
+  assert.equal(goalsDone('lost'),0);
+});

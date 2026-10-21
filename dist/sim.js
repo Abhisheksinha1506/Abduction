@@ -6,7 +6,9 @@ const TAU = Math.PI * 2;
 const BEAM_LIMIT = Math.PI * 40 / 180;
 const GRAVITY = 520;
 const PEOPLE = new Set(['civilian', 'thrower', 'gunner', 'agent', 'cow']);
+const HOSTILES = new Set(['thrower', 'gunner', 'agent']);
 const CARGO = new Set(['rock', 'truck', 'bomb']);
+const SHELTER_COOLDOWN = 7;
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const distance = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 const randomBetween = (game, a, b) => a + game.random() * (b - a);
@@ -230,6 +232,7 @@ function updateBeam(game, input, dt) {
   const sx = Math.sin(ufo.beamAngle);
   const sy = Math.cos(ufo.beamAngle);
   let full = false;
+  let tooHeavy = false;
   let blocked = false;
   const candidates = game.entities.filter(entity => !entity.dead && entity.kind !== 'plane' && entity.physical !== 'lifted' && entity.state !== 'sheltered')
     .sort((a, b) => distance(ufo, a) - distance(ufo, b));
@@ -244,7 +247,11 @@ function updateBeam(game, input, dt) {
       blocked = true;
       continue;
     }
-    if (load + entity.load > ufo.capacity) { full = true; continue; }
+    if (load + entity.load > ufo.capacity) {
+      if (load >= ufo.capacity) full = true;
+      else tooHeavy = true;
+      continue;
+    }
     entity.physical = 'lifted';
     entity.state = 'lifted';
     entity.carried = false;
@@ -259,7 +266,8 @@ function updateBeam(game, input, dt) {
     if (entity.kind === 'truck' && entity.passengers) unloadTruck(game, entity, true);
   }
   ufo.load = load;
-  game.beamFeedback = full ? 'BEAM AT CAPACITY' : blocked ? 'PATH BLOCKED · CHANGE ANGLE' :
+  game.beamFeedback = full ? 'BEAM AT CAPACITY' : tooHeavy ? 'TARGET TOO HEAVY' :
+    blocked ? 'PATH BLOCKED · CHANGE ANGLE' :
     load ? 'RELEASE TO DROP CARGO' : 'SEARCHING FOR CARGO';
 }
 
@@ -339,7 +347,7 @@ function destroyCharacter(game, entity, cargo) {
   entity.physical = 'dead';
   cancelAttack(entity);
   game.stats.destroyed++;
-  if (cargo) game.stats.rockKills++;
+  if (cargo && HOSTILES.has(entity.kind)) game.stats.rockKills++;
   addCombo(game);
   const credits = Math.round(45 * game.stats.combo);
   game.stats.credits += credits;
@@ -357,6 +365,7 @@ function damageBuilding(game, building, amount = 1) {
     label(game, building.x, building.y - building.h / 2 - 18, 'SHELTER OPEN', '#fac275');
     for (const person of game.entities) {
       if (person.shelterId === building.id) {
+        if (person.state === 'sheltered') person.shelterCooldown = SHELTER_COOLDOWN;
         person.shelterId = null;
         person.state = 'flee';
         person.timer = .75;
@@ -393,7 +402,8 @@ function destroyCargo(game, entity, impact = false) {
   event(game, 'explosion', { x: entity.x, y: entity.y });
   if (entity.kind === 'bomb' && impact) {
     for (const target of game.entities) {
-      if (target !== entity && !target.dead && target.collectible && distance(target, entity) < 90) destroyCharacter(game, target, true);
+      if (target !== entity && !target.dead && target.collectible && target.state !== 'sheltered' &&
+          distance(target, entity) < 90) destroyCharacter(game, target, true);
     }
     for (const building of game.buildings) {
       if (building.hp > 0 && Math.abs(building.x - entity.x) < building.w / 2 + 65 &&
@@ -505,7 +515,7 @@ function updateCivilian(game, entity, dt) {
     entity.vx=0;
     const shelter=game.buildings.find(b=>b.id===entity.shelterId&&b.hp>0);
     if(!shelter||entity.timer<=0){
-      entity.shelterId=null;entity.state='flee';entity.timer=2;entity.shelterCooldown=7;
+      entity.shelterId=null;entity.state='flee';entity.timer=2;entity.shelterCooldown=SHELTER_COOLDOWN;
       entity.direction=entity.entranceSide||(entity.x<ufo.x?-1:1);
     }
     return;

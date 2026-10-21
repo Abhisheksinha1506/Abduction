@@ -345,3 +345,54 @@ test('seeded simulation is reproducible, finite, and clamps flight and beam boun
   assert.ok(Math.abs(first.ufo.beamAngle) <= Math.PI * 40 / 180);
   assert.ok(Object.values(first.ufo).filter(value => typeof value === 'number').every(Number.isFinite));
 });
+
+const testShelter = (hp = 3) => ({ id: 999, x: 850, y: WORLD.ground - 60, w: 140, h: 120, hp, maxHp: 3, flash: 0, shelter: true });
+
+test('dropped cargo on civilians and cows does not count toward the hostile cargo challenge', () => {
+  const game = arena();
+  for (const [kind, x] of [['civilian', 600], ['cow', 900]]) {
+    const target = spawnEntity(game, kind, x, undefined, { timer: 999, spawnGrace: 999 });
+    spawnEntity(game, 'rock', x, target.y - 35, { physical: 'airborne', wasCarried: true, vy: 250 });
+  }
+  advance(game, .15);
+  assert.equal(game.stats.destroyed, 2);
+  assert.equal(game.stats.rockKills, 0);
+});
+
+test('beam reports a target too heavy for the remaining capacity', () => {
+  const game = arena();
+  Object.assign(game.ufo, { x: 420, y: 350 });
+  spawnEntity(game, 'civilian', 420);
+  spawnEntity(game, 'cow', 425);
+  const rock = spawnEntity(game, 'rock', 450);
+  stepGame(game, beam, DT);
+  assert.equal(game.ufo.load, 22);
+  assert.equal(rock.physical, 'grounded');
+  assert.equal(game.beamFeedback, 'TARGET TOO HEAVY');
+});
+
+test('civilians forced out by a destroyed shelter receive the shelter cooldown', () => {
+  const game = arena();
+  const shelter = testShelter(1);
+  game.buildings = [shelter];
+  const civilian = spawnEntity(game, 'civilian', 768, undefined, { state: 'sheltered', shelterId: shelter.id, timer: 50 });
+  spawnEntity(game, 'rock', shelter.x, shelter.y - shelter.h / 2 - 40, { physical: 'airborne', wasCarried: true, vy: 300 });
+  advance(game, .3);
+  assert.equal(shelter.hp, 0);
+  assert.equal(civilian.state, 'flee');
+  assert.ok(civilian.shelterCooldown > 6, `cooldown ${civilian.shelterCooldown}`);
+});
+
+test('a returned charge explosion spares civilians inside a standing shelter', () => {
+  const game = arena();
+  const shelter = testShelter();
+  game.buildings = [shelter];
+  const sheltered = spawnEntity(game, 'civilian', 768, undefined, { state: 'sheltered', shelterId: shelter.id, timer: 50 });
+  const outside = spawnEntity(game, 'civilian', 700, undefined, { timer: 999, spawnGrace: 999 });
+  spawnEntity(game, 'bomb', 728, 520, { physical: 'airborne', wasCarried: true, vy: 400 });
+  advance(game, .3);
+  assert.equal(outside.dead, true);
+  assert.ok(shelter.hp > 0);
+  assert.ok(!sheltered.dead);
+  assert.equal(sheltered.state, 'sheltered');
+});
